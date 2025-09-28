@@ -1,10 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
 
 import { SignInForm } from "@/components/forms/sign-in-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { authOptions } from "@/lib/auth-options";
 import { siteConfig } from "@/lib/site-config";
 
 export default async function SignInPage({
@@ -12,11 +9,6 @@ export default async function SignInPage({
 }: {
   searchParams?: Promise<{ error?: string }>;
 }) {
-  const session = await getServerSession(authOptions);
-  if (session) {
-    redirect("/dashboard");
-  }
-
   const resolvedSearchParams = await searchParams;
   const error = resolvedSearchParams?.error;
 
