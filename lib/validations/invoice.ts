@@ -3,12 +3,16 @@ import { z } from "zod";
 export const invoiceLineSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(1, "Description is required"),
-  quantity: z.coerce
-    .number({ invalid_type_error: "Quantity must be a number" })
-    .min(1, "Minimum quantity is 1"),
-  unitPrice: z.coerce
-    .number({ invalid_type_error: "Unit price must be a number" })
-    .min(0, "Unit price cannot be negative"),
+  quantity: z.union([z.string(), z.number()])
+    .transform((val) => Number(val))
+    .refine((val) => !isNaN(val) && val >= 1, {
+      message: "Quantity must be a number greater than 0",
+    }),
+  unitPrice: z.union([z.string(), z.number()])
+    .transform((val) => Number(val))
+    .refine((val) => !isNaN(val) && val >= 0, {
+      message: "Unit price must be a number greater than or equal to 0",
+    }),
   sortOrder: z.number().optional(),
 });
 
@@ -19,7 +23,7 @@ export const invoiceFormSchema = z.object({
   currency: z.string().min(1, "Currency is required"),
   status: z
     .enum(["DRAFT", "SENT", "PAID", "OVERDUE", "VOID"], {
-      errorMap: () => ({ message: "Select a valid status" }),
+      message: "Select a valid status",
     })
     .default("DRAFT"),
   notes: z.string().optional().nullable(),
@@ -27,9 +31,11 @@ export const invoiceFormSchema = z.object({
   enablePaymentLink: z.boolean().default(true),
   requiresDeposit: z.boolean().default(false),
   depositType: z.enum(["PERCENTAGE", "FIXED"]).default("FIXED"),
-  depositValue: z.coerce
-    .number({ invalid_type_error: "Deposit must be a number" })
-    .min(0, "Deposit must be zero or greater")
+  depositValue: z.union([z.string(), z.number()])
+    .transform((val) => Number(val))
+    .refine((val) => !isNaN(val) && val >= 0, {
+      message: "Deposit must be a number greater than or equal to 0",
+    })
     .default(0),
   depositDueDate: z.string().optional().nullable(),
 }).superRefine((data, ctx) => {

@@ -19,7 +19,7 @@ export type DispatchResult = {
   sms?: { success: boolean; error?: string };
 };
 
-type InvoiceWithRelations = Awaited<ReturnType<typeof getInvoiceWithRelations>>;
+type InvoiceWithRelations = NonNullable<Awaited<ReturnType<typeof getInvoiceWithRelations>>>;
 
 async function getInvoiceWithRelations(invoiceId: string) {
   return prisma.invoice.findUnique({

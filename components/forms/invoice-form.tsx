@@ -138,7 +138,8 @@ export function InvoiceForm({ customers, defaultCustomerId, invoice }: InvoiceFo
   }, [customers, defaultCustomerId, invoice]);
 
   const form = useForm<InvoiceFormValues>({
-    resolver: zodResolver(invoiceFormSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(invoiceFormSchema) as any,
     defaultValues,
   });
 
