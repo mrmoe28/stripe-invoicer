@@ -37,10 +37,6 @@ export default async function SignInPage({
                 : "Something went wrong. Please try again."}
             </p>
           )}
-          <p className="mb-4 text-sm text-muted-foreground">
-            Demo access: <span className="font-medium text-foreground">founder@ledgerflow.app</span> /
-            <span className="font-medium text-foreground"> Passw0rd!</span>
-          </p>
           <SignInForm />
           <div className="mt-6 space-y-2 text-center text-sm text-muted-foreground">
             <p>
