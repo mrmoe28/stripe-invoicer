@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum InvoiceEventType {
+  SENT_EMAIL
+  SENT_SMS
+  OPENED
+  ALERT_EMAIL
+  PAID_ALERT
+}
+
+enum InvoiceEventStatus {
+  SUCCESS
+  FAILED
+}
+
+enum InvoiceEventChannel {
+  EMAIL
+  SMS
+  SYSTEM
+}
+
+enum DepositType {
+  PERCENTAGE
+  FIXED
+}
+
+model User {
+  id                  String       @id @default(cuid())
+  email               String       @unique
+  name                String?
+  imageUrl            String?
+  passwordHash        String?
+  defaultWorkspaceId  String?
+  defaultWorkspace    Workspace?   @relation("DefaultWorkspace", fields: [defaultWorkspaceId], references: [id])
+  memberships         Membership[]
+  accounts            Account[]
+  sessions            Session[]
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model Workspace {
+  id             String        @id @default(cuid())
+  name           String
+  slug           String        @unique
+  members        Membership[]
+  customers      Customer[]
+  invoices       Invoice[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  defaultUsers   User[]        @relation("DefaultWorkspace")
+}
+
+model Membership {
+  id           String         @id @default(cuid())
+  role         MembershipRole @default(MEMBER)
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  workspace    Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId  String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([userId, workspaceId])
+}
+
+model Customer {
+  id               String     @id @default(cuid())
+  businessName     String
+  primaryContact   String?
+  email            String
+  phone            String?
+  addressLine1     String?
+  addressLine2     String?
+  city             String?
+  state            String?
+  postalCode       String?
+  country          String?
+  notes            String?
+  stripeCustomerId String?    @unique
+  workspace        Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId      String
+  invoices         Invoice[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model Invoice {
+  id                  String         @id @default(cuid())
+  number              String
+  status              InvoiceStatus  @default(DRAFT)
+  currency            String         @default("USD")
+  issueDate           DateTime       @default(now())
+  dueDate             DateTime
+  subtotal            Decimal        @default(0)
+  taxTotal            Decimal        @default(0)
+  discountTotal       Decimal        @default(0)
+  total               Decimal        @default(0)
+  requiresDeposit     Boolean        @default(false)
+  depositType         DepositType?
+  depositValue        Decimal?
+  depositAmount       Decimal?
+  depositDueDate      DateTime?
+  notes               String?
+  paymentLinkUrl      String?
+  stripePaymentIntent String?        @unique
+  workspace           Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId         String
+  customer            Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId          String
+  lineItems           InvoiceLine[]
+  payments            Payment[]
+  events              InvoiceEvent[]
+  sentAt              DateTime?
+  firstOpenedAt       DateTime?
+  lastOpenedAt        DateTime?
+  paidNotifiedAt      DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@unique([workspaceId, number])
+}
+
+model InvoiceEvent {
+  id        String                @id @default(cuid())
+  type      InvoiceEventType
+  status    InvoiceEventStatus    @default(SUCCESS)
+  channel   InvoiceEventChannel?
+  detail    Json?
+  invoice   Invoice               @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+  createdAt DateTime              @default(now())
+}
+
+model InvoiceLine {
+  id          String   @id @default(cuid())
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Decimal  @default(0)
+  amount      Decimal  @default(0)
+  sortOrder   Int      @default(0)
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Payment {
+  id                  String        @id @default(cuid())
+  amount              Decimal       @default(0)
+  currency            String        @default("USD")
+  status              PaymentStatus @default(PENDING)
+  method              String?
+  processedAt         DateTime?
+  stripePaymentIntent String?       @unique
+  rawPayload          Json?
+  invoice             Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId           String
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @map("refresh_token")
+  access_token       String? @map("access_token")
+  expires_at         Int?    @map("expires_at")
+  token_type         String? @map("token_type")
+  scope              String?
+  id_token           String? @map("id_token")
+  session_state      String? @map("session_state")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
