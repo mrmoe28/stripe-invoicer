@@ -86,3 +86,21 @@ export function formatDateTime(
     locale,
   );
 }
+
+export function slugify(value: string, { maxLength = 48 }: { maxLength?: number } = {}): string {
+  const normalized = value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (normalized.length === 0) {
+    return "workspace";
+  }
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return normalized.slice(0, maxLength).replace(/-+$/, "");
+}

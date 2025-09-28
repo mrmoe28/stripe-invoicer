@@ -42,9 +42,20 @@ export default async function SignInPage({
             <span className="font-medium text-foreground"> Passw0rd!</span>
           </p>
           <SignInForm />
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Need help onboarding? <Link className="font-medium text-primary" href="mailto:hello@ledgerflow.app">Contact us</Link>
-          </p>
+          <div className="mt-6 space-y-2 text-center text-sm text-muted-foreground">
+            <p>
+              Don&apos;t have an account? {" "}
+              <Link className="font-medium text-primary" href="/sign-up">
+                Create one
+              </Link>
+            </p>
+            <p>
+              Need help onboarding?{" "}
+              <Link className="font-medium text-primary" href="mailto:hello@ledgerflow.app">
+                Contact us
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
