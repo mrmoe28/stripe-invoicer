@@ -15,34 +15,72 @@ export const getCurrentUser = cache(async () => {
     redirect("/sign-in");
   }
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-  if (!user || !session.user.workspaceId) {
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: {
+      defaultWorkspace: true,
+      memberships: {
+        include: { workspace: true },
+        orderBy: { createdAt: "asc" },
+        take: 1,
+      },
+    },
+  });
+
+  if (!user) {
+    redirect("/sign-in");
+  }
+
+  const resolvedWorkspaceId =
+    session.user.workspaceId ??
+    user.defaultWorkspaceId ??
+    user.memberships[0]?.workspaceId ??
+    null;
+
+  const resolvedWorkspaceName =
+    session.user.workspaceName ??
+    user.defaultWorkspace?.name ??
+    user.memberships[0]?.workspace?.name ??
+    null;
+
+  if (!resolvedWorkspaceId) {
     redirect("/sign-in");
   }
 
   return {
     ...user,
-    workspaceId: session.user.workspaceId,
-    workspaceName: session.user.workspaceName ?? null,
+    workspaceId: resolvedWorkspaceId,
+    workspaceName: resolvedWorkspaceName,
   };
 });
 
 export const getCurrentWorkspace = cache(async () => {
   const session = await getCurrentSession();
-  if (!session?.user?.workspaceId) {
-    redirect("/sign-in");
-  }
-
-  const workspace = await prisma.workspace.findUnique({
-    where: { id: session.user.workspaceId },
+  const user = await prisma.user.findUnique({
+    where: { id: session?.user?.id ?? "" },
+    include: {
+      defaultWorkspace: true,
+      memberships: {
+        include: { workspace: true },
+        orderBy: { createdAt: "asc" },
+        take: 1,
+      },
+    },
   });
 
-  if (!workspace) {
+  const workspaceRecord =
+    (session?.user?.workspaceId &&
+      (await prisma.workspace.findUnique({ where: { id: session.user.workspaceId } }))) ??
+    user?.defaultWorkspace ??
+    user?.memberships[0]?.workspace ??
+    null;
+
+  if (!workspaceRecord) {
     redirect("/sign-in");
   }
 
   return {
-    workspace,
+    workspace: workspaceRecord,
     session,
   };
 });
