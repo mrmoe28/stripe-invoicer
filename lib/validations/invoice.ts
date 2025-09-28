@@ -3,9 +3,11 @@ import { z } from "zod";
 export const invoiceLineSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(1, "Description is required"),
-  quantity: z.number({ invalid_type_error: "Quantity must be a number" })
+  quantity: z.coerce
+    .number({ invalid_type_error: "Quantity must be a number" })
     .min(1, "Minimum quantity is 1"),
-  unitPrice: z.number({ invalid_type_error: "Unit price must be a number" })
+  unitPrice: z.coerce
+    .number({ invalid_type_error: "Unit price must be a number" })
     .min(0, "Unit price cannot be negative"),
   sortOrder: z.number().optional(),
 });
@@ -25,7 +27,8 @@ export const invoiceFormSchema = z.object({
   enablePaymentLink: z.boolean().default(true),
   requiresDeposit: z.boolean().default(false),
   depositType: z.enum(["PERCENTAGE", "FIXED"]).default("FIXED"),
-  depositValue: z.number({ invalid_type_error: "Deposit must be a number" })
+  depositValue: z.coerce
+    .number({ invalid_type_error: "Deposit must be a number" })
     .min(0, "Deposit must be zero or greater")
     .default(0),
   depositDueDate: z.string().optional().nullable(),
