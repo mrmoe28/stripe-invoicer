@@ -7,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { createAccountAction } from "@/app/(auth)/sign-up/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,21 +45,34 @@ export function SignUpForm() {
     setFormError(null);
     const email = values.email.trim().toLowerCase();
 
-    const result = await createAccountAction({
-      email,
-      password: values.password,
-    });
+    try {
+      const response = await fetch("/api/sign-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: values.password }),
+      });
 
-    if (!result.success) {
-      setFormError(result.error);
-      if (result.fieldErrors) {
-        Object.entries(result.fieldErrors).forEach(([field, messages]) => {
-          const message = messages?.[0];
-          if (message) {
-            setError(field as keyof SignUpFormValues, { message });
-          }
-        });
+      const payload = (await response.json()) as {
+        success: boolean;
+        error?: string;
+        fieldErrors?: Record<string, string[]>;
+      };
+
+      if (!response.ok || !payload.success) {
+        setFormError(payload.error ?? "Unable to create account right now. Please try again.");
+        if (payload.fieldErrors) {
+          Object.entries(payload.fieldErrors).forEach(([field, messages]) => {
+            const message = messages?.[0];
+            if (message) {
+              setError(field as keyof SignUpFormValues, { message });
+            }
+          });
+        }
+        return;
       }
+    } catch (error) {
+      console.error("Sign-up request failed", error);
+      setFormError("Unable to create account right now. Please try again.");
       return;
     }
 

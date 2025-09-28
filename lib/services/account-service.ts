@@ -1,24 +1,16 @@
-"use server";
-
 import { hash } from "bcryptjs";
 import { Prisma } from "@prisma/client";
-import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 
-const signUpSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100, "Password must be less than 100 characters"),
-  workspaceName: z.string().max(60, "Workspace name is too long").optional(),
-});
+export type CreateAccountInput = {
+  email: string;
+  password: string;
+  workspaceName?: string | null;
+};
 
-type SignUpInput = z.infer<typeof signUpSchema>;
-
-type SignUpResult =
+export type CreateAccountResult =
   | { success: true }
   | {
       success: false;
@@ -26,7 +18,7 @@ type SignUpResult =
       fieldErrors?: Record<string, string[]>;
     };
 
-function deriveWorkspaceName(email: string, provided?: string) {
+function deriveWorkspaceName(email: string, provided?: string | null) {
   const trimmed = provided?.trim();
   if (trimmed) {
     return trimmed;
@@ -57,20 +49,10 @@ async function generateUniqueWorkspaceSlug(name: string) {
   }
 }
 
-export async function createAccountAction(input: SignUpInput): Promise<SignUpResult> {
-  const parsed = signUpSchema.safeParse(input);
-  if (!parsed.success) {
-    return {
-      success: false,
-      error: "Please fix the highlighted fields",
-      fieldErrors: parsed.error.flatten().fieldErrors,
-    };
-  }
+export async function createAccount({ email, password, workspaceName }: CreateAccountInput): Promise<CreateAccountResult> {
+  const normalizedEmail = email.trim().toLowerCase();
 
-  const email = parsed.data.email.trim().toLowerCase();
-  const password = parsed.data.password;
-
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+  const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
   if (existingUser) {
     return {
       success: false,
@@ -79,23 +61,23 @@ export async function createAccountAction(input: SignUpInput): Promise<SignUpRes
     };
   }
 
-  const workspaceName = deriveWorkspaceName(email, parsed.data.workspaceName);
-  const workspaceSlug = await generateUniqueWorkspaceSlug(workspaceName);
+  const finalWorkspaceName = deriveWorkspaceName(normalizedEmail, workspaceName);
+  const workspaceSlug = await generateUniqueWorkspaceSlug(finalWorkspaceName);
   const passwordHash = await hash(password, 12);
 
   try {
     await prisma.$transaction(async (tx) => {
       const workspace = await tx.workspace.create({
         data: {
-          name: workspaceName,
+          name: finalWorkspaceName,
           slug: workspaceSlug,
         },
       });
 
       await tx.user.create({
         data: {
-          email,
-          name: parsed.data.workspaceName?.trim() ?? null,
+          email: normalizedEmail,
+          name: workspaceName?.trim() ?? null,
           passwordHash,
           defaultWorkspaceId: workspace.id,
           memberships: {
@@ -108,14 +90,12 @@ export async function createAccountAction(input: SignUpInput): Promise<SignUpRes
       });
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return {
-          success: false,
-          error: "That email is already registered.",
-          fieldErrors: { email: ["Choose a different email address"] },
-        };
-      }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return {
+        success: false,
+        error: "That email is already registered.",
+        fieldErrors: { email: ["Choose a different email address"] },
+      };
     }
 
     console.error("Failed to create account", error);
