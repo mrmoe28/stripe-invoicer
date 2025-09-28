@@ -1,3 +1,5 @@
+"use server";
+
 import { hash } from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -56,8 +58,6 @@ async function generateUniqueWorkspaceSlug(name: string) {
 }
 
 export async function createAccountAction(input: SignUpInput): Promise<SignUpResult> {
-  "use server";
-
   const parsed = signUpSchema.safeParse(input);
   if (!parsed.success) {
     return {
