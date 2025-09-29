@@ -14,10 +14,8 @@ interface LinkButtonProps {
 
 export function LinkButton({ href, children, variant = "outline", size = "md", className }: LinkButtonProps) {
   return (
-    <Link href={href} passHref legacyBehavior>
-      <Button variant={variant} size={size} className={className} asChild>
-        <a>{children}</a>
-      </Button>
-    </Link>
+    <Button variant={variant} size={size} className={className} asChild>
+      <Link href={href}>{children}</Link>
+    </Button>
   );
 }
