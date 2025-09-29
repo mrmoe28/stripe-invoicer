@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { SignInForm } from "@/components/forms/sign-in-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LinkButton } from "@/components/ui/link-button";
 import { siteConfig } from "@/lib/site-config";
 
 export default async function SignInPage({
@@ -31,12 +32,9 @@ export default async function SignInPage({
           )}
           <SignInForm />
           <div className="mt-6 space-y-4 text-center">
-            <Link 
-              href="/sign-up"
-              className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-            >
+            <LinkButton href="/sign-up" variant="outline" className="w-full">
               Sign up
-            </Link>
+            </LinkButton>
             <p className="text-sm text-muted-foreground">
               Need help onboarding?{" "}
               <Link className="font-medium text-primary hover:underline" href="mailto:hello@ledgerflow.app">
