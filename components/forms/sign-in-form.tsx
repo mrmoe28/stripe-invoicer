@@ -44,7 +44,12 @@ export function SignInForm() {
       return;
     }
 
-    router.push(result?.url ?? "/dashboard");
+    if (result?.ok) {
+      // Use window.location.href for more reliable navigation in production
+      window.location.href = result?.url ?? "/dashboard";
+    } else {
+      router.push(result?.url ?? "/dashboard");
+    }
   };
 
   return (

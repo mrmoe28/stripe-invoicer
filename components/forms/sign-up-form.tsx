@@ -89,7 +89,8 @@ export function SignUpForm() {
     }
 
     if (signInResult?.ok) {
-      router.push("/dashboard");
+      // Force navigation to dashboard after successful sign-in
+      window.location.href = "/dashboard";
     } else {
       setFormError("Account created, but automatic sign-in failed. Please sign in manually.");
     }

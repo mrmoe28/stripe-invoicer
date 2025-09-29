@@ -53,6 +53,8 @@ export const authOptions: NextAuthOptions = {
     signIn: "/sign-in",
     newUser: "/sign-up",
   },
+  debug: process.env.NODE_ENV === "development",
+  useSecureCookies: process.env.NODE_ENV === "production",
   providers: [
     CredentialsProvider({
       name: "Credentials",
