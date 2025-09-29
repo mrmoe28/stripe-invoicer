@@ -10,13 +10,14 @@ async function testInvoiceSending() {
   try {
     // Navigate to the application
     console.log('📱 Navigating to application...');
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:3001');
     await page.waitForLoadState('networkidle');
 
-    // Sign in with demo credentials
+    // Sign in with user credentials (requires manual setup)
     console.log('🔐 Signing in...');
-    await page.fill('input[type="email"]', 'founder@ledgerflow.app');
-    await page.fill('input[type="password"]', 'Passw0rd!');
+    // TODO: Replace with actual user credentials after account creation
+    await page.fill('input[type="email"]', 'your-email@domain.com');
+    await page.fill('input[type="password"]', 'your-password');
     await page.click('button[type="submit"]');
     await page.waitForLoadState('networkidle');
 

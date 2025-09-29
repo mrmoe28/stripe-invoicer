@@ -4,7 +4,7 @@ Ledgerflow is a Stripe-connected invoicing dashboard built with Next.js 15, Stri
 
 ## Stack
 - Next.js 15 (App Router) & TypeScript
-- Prisma ORM with SQLite (swap-ready for Postgres)
+- Prisma ORM with PostgreSQL (NeonDB)
 - Stripe API + Payment Links (webhook-ready)
 - Tailwind CSS v4 with a shadcn-inspired component kit
 - Zustand, React Hook Form, Zod (planned for upcoming flows)
@@ -13,8 +13,8 @@ Ledgerflow is a Stripe-connected invoicing dashboard built with Next.js 15, Stri
 ```bash
 pnpm install
 pnpm prisma:generate
-pnpm db:push        # create the SQLite database
-pnpm db:seed        # optional sample data
+pnpm db:push        # sync schema to PostgreSQL database
+pnpm db:seed        # clear existing data
 pnpm dev
 ```
 
@@ -22,7 +22,7 @@ Environment variables live in `.env`; copy `.env.example` and fill in your Strip
 
 ## Authentication
 - Credentials-based auth provided by NextAuth + Prisma Adapter.
-- Demo login: `founder@ledgerflow.app` / `Passw0rd!`
+- Users can create accounts and workspaces through the sign-up flow
 - Each user belongs to a workspace via `Membership`; data queries scope by `workspaceId`.
 
 ### Available workflows

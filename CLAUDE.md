@@ -7,7 +7,7 @@ Ledgerflow is a Stripe-connected invoicing dashboard that helps service teams dr
 
 ## Tech Stack
 - **Framework**: Next.js 15 (App Router) with TypeScript
-- **Database**: Prisma ORM with SQLite (easily swappable to PostgreSQL)
+- **Database**: Prisma ORM with PostgreSQL (NeonDB)
 - **Payment Processing**: Stripe API + Payment Links (webhook-ready)
 - **Styling**: Tailwind CSS v4 with shadcn-inspired component kit
 - **State Management**: Zustand
@@ -51,7 +51,7 @@ pnpm lint:fix        # Fix auto-fixable linting issues
   - Workspace-scoped data queries
   
 - **`app/(auth)/sign-in`**: Standalone authentication page
-  - Demo credentials: `founder@ledgerflow.app` / `Passw0rd!`
+  - Users can create accounts or sign in with existing credentials
   
 - **`app/api/*`**: API endpoints
   - `/api/auth/*`: NextAuth handlers
@@ -85,7 +85,7 @@ pnpm lint:fix        # Fix auto-fixable linting issues
 
 ## Environment Configuration
 Required environment variables:
-- `DATABASE_URL`: SQLite connection string (default: `file:./prisma/dev.db`)
+- `DATABASE_URL`: PostgreSQL connection string (NeonDB)
 - `NEXTAUTH_URL`: Base URL for authentication callbacks
 - `NEXTAUTH_SECRET`: Secret for JWT signing
 - `STRIPE_SECRET_KEY`: Stripe API secret key
@@ -95,7 +95,7 @@ Required environment variables:
 ## Testing Locally
 1. Set up environment variables in `.env` file
 2. Initialize database: `pnpm prisma:generate && pnpm db:push`
-3. Seed sample data: `pnpm db:seed`
+3. Clear/reset data: `pnpm db:seed`
 4. Start dev server: `pnpm dev`
-5. Access at `http://localhost:3000`
-6. Sign in with demo account or create new workspace
+5. Access at `http://localhost:3001`
+6. Create new account and workspace
