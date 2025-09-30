@@ -93,13 +93,42 @@ export async function updateInvoiceAction(invoiceId: string, rawValues: InvoiceF
 
 export async function updateInvoiceStatusAction(invoiceId: string, status: InvoiceStatus) {
   const user = await getCurrentUser();
-  const { count } = await prisma.invoice.updateMany({
+  
+  // First, fetch the invoice to check if we need to create a payment link
+  const invoice = await prisma.invoice.findFirst({
     where: { id: invoiceId, workspaceId: user.workspaceId },
-    data: { status },
+    include: {
+      lineItems: true,
+      customer: true,
+    },
   });
 
-  if (count === 0) {
+  if (!invoice) {
     throw new Error("Invoice not found");
+  }
+
+  // Create Stripe payment link if sending and not already created
+  if (status === InvoiceStatus.SENT && !invoice.paymentLinkUrl) {
+    const paymentLink = await maybeCreateStripePaymentLink(invoice);
+    if (paymentLink) {
+      await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: { 
+          status,
+          paymentLinkUrl: paymentLink 
+        },
+      });
+    } else {
+      await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: { status },
+      });
+    }
+  } else {
+    await prisma.invoice.update({
+      where: { id: invoice.id },
+      data: { status },
+    });
   }
 
   if (status === InvoiceStatus.SENT) {
@@ -119,11 +148,25 @@ export async function sendInvoiceAction(invoiceId: string) {
   const user = await getCurrentUser();
   const invoice = await prisma.invoice.findFirst({
     where: { id: invoiceId, workspaceId: user.workspaceId },
-    select: { id: true },
+    include: {
+      lineItems: true,
+      customer: true,
+    },
   });
 
   if (!invoice) {
     throw new Error("Invoice not found");
+  }
+
+  // Create Stripe payment link if not already created
+  if (!invoice.paymentLinkUrl) {
+    const paymentLink = await maybeCreateStripePaymentLink(invoice);
+    if (paymentLink) {
+      await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: { paymentLinkUrl: paymentLink },
+      });
+    }
   }
 
   const result = await dispatchInvoice(invoiceId);
