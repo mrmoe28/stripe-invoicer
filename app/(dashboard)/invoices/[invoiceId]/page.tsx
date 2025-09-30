@@ -8,8 +8,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth";
 import { getInvoiceById } from "@/lib/services/invoice-service";
+import { prisma } from "@/lib/prisma";
 import { cn, formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 
 const statusCopy: Record<InvoiceStatus, string> = {
@@ -28,12 +30,49 @@ const statusVariant: Record<InvoiceStatus, "outline" | "secondary" | "success" |
   VOID: "destructive",
 };
 
+// Get invoice without requiring authentication for public access
+async function getInvoiceForPublicAccess(invoiceId: string) {
+  return prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    include: {
+      customer: true,
+      lineItems: true,
+      workspace: {
+        select: {
+          name: true,
+          companyName: true,
+          companyEmail: true,
+          companyPhone: true,
+          companyWebsite: true,
+          logoUrl: true,
+        },
+      },
+    },
+  });
+}
+
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ invoiceId: string }> }) {
-  const user = await getCurrentUser();
   const resolvedParams = await params;
-  const invoice = await getInvoiceById(user.workspaceId, resolvedParams.invoiceId);
+  
+  // Try to get current user (may be null for public access)
+  let user = null;
+  let invoice = null;
+  
+  try {
+    user = await getCurrentUser();
+    invoice = await getInvoiceById(user.workspaceId, resolvedParams.invoiceId);
+  } catch {
+    // User not authenticated, try public access
+    invoice = await getInvoiceForPublicAccess(resolvedParams.invoiceId);
+  }
 
   if (!invoice) {
+    notFound();
+  }
+  
+  // For public access, only show sent/overdue invoices
+  const isPublicAccess = !user;
+  if (isPublicAccess && invoice.status === InvoiceStatus.DRAFT) {
     notFound();
   }
 
