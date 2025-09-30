@@ -1,4 +1,5 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import Image from "next/image";
 import { InvoiceStatus } from "@prisma/client";
 
 import { Badge } from "@/components/ui/badge";
@@ -79,7 +80,13 @@ export default async function PublicInvoicePage({ params }: { params: Promise<{ 
         {/* Header */}
         <div className="mb-8 text-center">
           {logoUrl && (
-            <img src={logoUrl} alt={companyName} className="mx-auto mb-4 h-16 object-contain" />
+            <Image 
+              src={logoUrl} 
+              alt={companyName} 
+              width={200} 
+              height={64} 
+              className="mx-auto mb-4 h-16 object-contain" 
+            />
           )}
           <h1 className="text-3xl font-bold text-gray-900">{companyName}</h1>
           {companyWebsite && (
@@ -224,8 +231,10 @@ export default async function PublicInvoicePage({ params }: { params: Promise<{ 
                   <p className="text-gray-600">
                     Payment link is being generated. Please refresh this page in a moment.
                   </p>
-                  <Button variant="outline" onClick={() => window.location.reload()}>
-                    Refresh Page
+                  <Button variant="outline" asChild>
+                    <a href={`/invoices/${invoice.id}`}>
+                      Refresh Page
+                    </a>
                   </Button>
                 </div>
               )}
@@ -233,6 +242,7 @@ export default async function PublicInvoicePage({ params }: { params: Promise<{ 
           </Card>
         )}
 
+        {/* Paid Status */}
         {invoice.status === InvoiceStatus.PAID && (
           <Card className="mb-6 border-green-200 bg-green-50">
             <CardContent className="pt-6 text-center">
@@ -259,7 +269,7 @@ export default async function PublicInvoicePage({ params }: { params: Promise<{ 
         <div className="text-center text-sm text-gray-500 mt-8">
           <p>{companyName}</p>
           {companyEmail && <p>{companyEmail}</p>}
-          {companyPhone && <p>{companyPhone}</p>
+          {companyPhone && <p>{companyPhone}</p>}
           <p className="mt-2">Questions? Reply to the invoice email or contact us directly.</p>
         </div>
       </div>
