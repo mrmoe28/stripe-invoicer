@@ -60,7 +60,7 @@ const categoryColors = {
   Products: "outline",
   Subscription: "success",
   Deposits: "warning",
-  Simple: "ghost",
+  Simple: "outline",
 } as const;
 
 export default async function InvoiceTemplatesPage() {

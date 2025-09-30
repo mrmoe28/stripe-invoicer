@@ -9,7 +9,7 @@ import {
 
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { getEmailBaseUrl, buildEmailUrl } from "@/lib/utils/email-helpers";
+import { buildEmailUrl } from "@/lib/utils/email-helpers";
 
 import { sendEmail, sendSms } from "./notification-service";
 
