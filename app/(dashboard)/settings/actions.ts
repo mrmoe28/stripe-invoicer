@@ -14,6 +14,4 @@ export async function updateCompanySettingsAction(rawValues: CompanySettingsValu
 
   revalidatePath("/settings");
   revalidatePath("/dashboard");
-  
-  return { success: true };
 }
