@@ -18,6 +18,29 @@ export type DispatchResult = {
   sms?: { success: boolean; error?: string };
 };
 
+type WorkspaceWithCompanyInfo = {
+  id: string;
+  name: string;
+  companyName?: string | null;
+  companyEmail?: string | null;
+  companyPhone?: string | null;
+  companyWebsite?: string | null;
+  companyEin?: string | null;
+  companyAddress?: string | null;
+  companyCity?: string | null;
+  companyState?: string | null;
+  companyZip?: string | null;
+  companyCountry?: string | null;
+  logoUrl?: string | null;
+  members: Array<{
+    role: MembershipRole;
+    user: {
+      id: string;
+      email: string;
+    } | null;
+  }>;
+};
+
 type InvoiceWithRelations = NonNullable<Awaited<ReturnType<typeof getInvoiceWithRelations>>>;
 
 async function getInvoiceWithRelations(invoiceId: string) {
@@ -98,16 +121,17 @@ function buildEmailHtml(invoice: InvoiceWithRelations) {
   const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '';
   
   // Company information
-  const companyName = (invoice.workspace as any).companyName || invoice.workspace.name;
-  const companyEmail = (invoice.workspace as any).companyEmail || "notifications@ledgerflow.org";
-  const companyPhone = (invoice.workspace as any).companyPhone;
-  const companyWebsite = (invoice.workspace as any).companyWebsite;
-  const logoUrl = (invoice.workspace as any).logoUrl;
-  const companyAddress = (invoice.workspace as any).companyAddress;
-  const companyCity = (invoice.workspace as any).companyCity;
-  const companyState = (invoice.workspace as any).companyState;
-  const companyZip = (invoice.workspace as any).companyZip;
-  const companyCountry = (invoice.workspace as any).companyCountry;
+  const workspace = invoice.workspace as WorkspaceWithCompanyInfo;
+  const companyName = workspace.companyName || workspace.name;
+  const companyEmail = workspace.companyEmail || "notifications@ledgerflow.org";
+  const companyPhone = workspace.companyPhone;
+  const companyWebsite = workspace.companyWebsite;
+  const logoUrl = workspace.logoUrl;
+  const companyAddress = workspace.companyAddress;
+  const companyCity = workspace.companyCity;
+  const companyState = workspace.companyState;
+  const companyZip = workspace.companyZip;
+  const companyCountry = workspace.companyCountry;
   
   // Build full company address
   const addressParts = [companyAddress, companyCity, companyState, companyZip, companyCountry].filter(Boolean);
@@ -294,15 +318,16 @@ function buildEmailText(invoice: InvoiceWithRelations) {
   const invoiceUrl = getInvoiceUrl(invoice);
   
   // Company information
-  const companyName = (invoice.workspace as any).companyName || invoice.workspace.name;
-  const companyEmail = (invoice.workspace as any).companyEmail || "notifications@ledgerflow.org";
-  const companyWebsite = (invoice.workspace as any).companyWebsite;
-  const companyPhone = (invoice.workspace as any).companyPhone;
-  const companyAddress = (invoice.workspace as any).companyAddress;
-  const companyCity = (invoice.workspace as any).companyCity;
-  const companyState = (invoice.workspace as any).companyState;
-  const companyZip = (invoice.workspace as any).companyZip;
-  const companyCountry = (invoice.workspace as any).companyCountry;
+  const workspace = invoice.workspace as WorkspaceWithCompanyInfo;
+  const companyName = workspace.companyName || workspace.name;
+  const companyEmail = workspace.companyEmail || "notifications@ledgerflow.org";
+  const companyWebsite = workspace.companyWebsite;
+  const companyPhone = workspace.companyPhone;
+  const companyAddress = workspace.companyAddress;
+  const companyCity = workspace.companyCity;
+  const companyState = workspace.companyState;
+  const companyZip = workspace.companyZip;
+  const companyCountry = workspace.companyCountry;
   
   // Build full company address
   const addressParts = [companyAddress, companyCity, companyState, companyZip, companyCountry].filter(Boolean);

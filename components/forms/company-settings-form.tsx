@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload, X } from "lucide-react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +46,6 @@ export function CompanySettingsForm({ workspace, onSave }: CompanySettingsFormPr
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<CompanySettingsValues>({
     resolver: zodResolver(companySettingsSchema),
@@ -64,7 +64,6 @@ export function CompanySettingsForm({ workspace, onSave }: CompanySettingsFormPr
     },
   });
 
-  const logoUrl = watch("logoUrl");
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -117,10 +116,12 @@ export function CompanySettingsForm({ workspace, onSave }: CompanySettingsFormPr
                   {logoPreview ? (
                     <div className="space-y-4">
                       <div className="relative inline-block">
-                        <img
+                        <Image
                           src={logoPreview}
                           alt="Company logo preview"
                           className="max-w-xs max-h-32 object-contain mx-auto"
+                          width={300}
+                          height={128}
                         />
                         <Button
                           type="button"

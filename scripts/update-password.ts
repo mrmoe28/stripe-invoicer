@@ -8,7 +8,7 @@ async function main() {
   const passwordHash = await bcrypt.hash("Chanon28$", 10);
 
   // Update the user's password
-  const user = await prisma.user.update({
+  await prisma.user.update({
     where: {
       email: "ekosolarize@gmail.com",
     },

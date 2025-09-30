@@ -16,7 +16,7 @@ async function main() {
   });
 
   // Create the user
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: "ekosolarize@gmail.com",
       name: "EkoSolarize",

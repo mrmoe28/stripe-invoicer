@@ -38,7 +38,6 @@ async function generateUniqueWorkspaceSlug(name: string) {
   let candidate = base;
   let attempt = 1;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const exists = await prisma.workspace.findUnique({ where: { slug: candidate } });
     if (!exists) {

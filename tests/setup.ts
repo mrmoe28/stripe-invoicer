@@ -1,5 +1,5 @@
 // Global test setup
-import { chromium, Page } from '@playwright/test';
+import '@playwright/test';
 
 // Create screenshots directory
 import { mkdir } from 'fs/promises';

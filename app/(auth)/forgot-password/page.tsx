@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { ForgotPasswordForm } from "@/components/forms/forgot-password-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { siteConfig } from "@/lib/site-config";
 
 export default function ForgotPasswordPage() {
   return (

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -25,7 +24,6 @@ const signUpFormSchema = z
 type SignUpFormValues = z.infer<typeof signUpFormSchema>;
 
 export function SignUpForm() {
-  const router = useRouter();
   const [formError, setFormError] = React.useState<string | null>(null);
   const {
     register,
