@@ -38,7 +38,7 @@ export default async function CustomersPage() {
       id: customer.id,
       name: customer.businessName,
       email: customer.email,
-      customerType: (customer as any).customerType || "BUSINESS",
+      customerType: "customerType" in customer ? customer.customerType as string : "BUSINESS",
       revenue: totalRevenue,
       invoiceCount: invoices.length,
       status,
