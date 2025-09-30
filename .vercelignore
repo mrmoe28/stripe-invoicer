@@ -1,0 +1,22 @@
+# Ignore conflicting lockfiles
+/Users/user/package-lock.json
+package-lock.json
+
+# Standard ignores
+node_modules/
+.git/
+.next/
+.env.local
+.env.*.local
+
+# Development files
+*.log
+.DS_Store
+coverage/
+.nyc_output/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo

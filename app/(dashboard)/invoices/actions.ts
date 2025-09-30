@@ -21,6 +21,7 @@ export async function createInvoiceAction(rawValues: InvoiceFormValues) {
   const invoice = await createInvoice(user.workspaceId, values);
 
   console.log('🔗 Payment link enabled:', values.enablePaymentLink);
+  let createdPaymentLink: string | null = null;
   if (values.enablePaymentLink) {
     console.log('🔗 Creating payment link for invoice:', invoice.number);
     const paymentLink = await maybeCreateStripePaymentLink(invoice);
@@ -30,13 +31,14 @@ export async function createInvoiceAction(rawValues: InvoiceFormValues) {
         where: { id: invoice.id },
         data: { paymentLinkUrl: paymentLink },
       });
+      createdPaymentLink = paymentLink;
     } else {
       console.log('❌ Payment link creation failed');
     }
   }
 
   if (values.status === InvoiceStatus.SENT) {
-    await dispatchInvoice(invoice.id);
+    await dispatchInvoice(invoice.id, createdPaymentLink);
   }
 
   revalidatePath("/dashboard");
@@ -66,6 +68,7 @@ export async function updateInvoiceAction(invoiceId: string, rawValues: InvoiceF
   const updated = await updateInvoice(user.workspaceId, invoiceId, values);
 
   let latestInvoice = updated;
+  let updatedPaymentLink: string | null = null;
 
   if (values.enablePaymentLink) {
     const paymentLink = await maybeCreateStripePaymentLink(updated);
@@ -78,11 +81,12 @@ export async function updateInvoiceAction(invoiceId: string, rawValues: InvoiceF
           lineItems: true,
         },
       });
+      updatedPaymentLink = paymentLink;
     }
   }
 
   if (values.status === InvoiceStatus.SENT && existing.status !== InvoiceStatus.SENT) {
-    await dispatchInvoice(invoiceId);
+    await dispatchInvoice(invoiceId, updatedPaymentLink || latestInvoice.paymentLinkUrl);
   }
 
   if (values.status === InvoiceStatus.PAID && existing.status !== InvoiceStatus.PAID) {
@@ -113,6 +117,7 @@ export async function updateInvoiceStatusAction(invoiceId: string, status: Invoi
   }
 
   // Create Stripe payment link if sending and not already created
+  let paymentLinkToUse = invoice.paymentLinkUrl;
   if (status === InvoiceStatus.SENT && !invoice.paymentLinkUrl) {
     const paymentLink = await maybeCreateStripePaymentLink(invoice);
     if (paymentLink) {
@@ -123,6 +128,7 @@ export async function updateInvoiceStatusAction(invoiceId: string, status: Invoi
           paymentLinkUrl: paymentLink 
         },
       });
+      paymentLinkToUse = paymentLink;
     } else {
       await prisma.invoice.update({
         where: { id: invoice.id },
@@ -137,7 +143,7 @@ export async function updateInvoiceStatusAction(invoiceId: string, status: Invoi
   }
 
   if (status === InvoiceStatus.SENT) {
-    await dispatchInvoice(invoiceId);
+    await dispatchInvoice(invoiceId, paymentLinkToUse);
   }
 
   if (status === InvoiceStatus.PAID) {
@@ -165,6 +171,7 @@ export async function sendInvoiceAction(invoiceId: string) {
 
   // Create Stripe payment link if not already created
   console.log('📧 Sending invoice:', invoice.number, 'Has payment link:', !!invoice.paymentLinkUrl);
+  let updatedPaymentLinkUrl = invoice.paymentLinkUrl;
   if (!invoice.paymentLinkUrl) {
     console.log('🔗 Creating payment link for sending invoice');
     const paymentLink = await maybeCreateStripePaymentLink(invoice);
@@ -174,12 +181,14 @@ export async function sendInvoiceAction(invoiceId: string) {
         where: { id: invoice.id },
         data: { paymentLinkUrl: paymentLink },
       });
+      updatedPaymentLinkUrl = paymentLink;
     } else {
       console.log('❌ Payment link creation failed for sending');
     }
   }
 
-  const result = await dispatchInvoice(invoiceId);
+  // Pass the payment link URL to ensure the email uses the correct URL
+  const result = await dispatchInvoice(invoiceId, updatedPaymentLinkUrl);
 
   revalidatePath("/dashboard");
   revalidatePath("/invoices");

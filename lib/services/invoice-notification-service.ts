@@ -387,11 +387,14 @@ async function recordEvent(
   });
 }
 
-export async function dispatchInvoice(invoiceId: string): Promise<DispatchResult> {
+export async function dispatchInvoice(invoiceId: string, paymentLinkUrl?: string | null): Promise<DispatchResult> {
   const invoice = await getInvoiceWithRelations(invoiceId);
   if (!invoice) {
     throw new Error("Invoice not found");
   }
+
+  // Use the provided payment link URL if available (to avoid race conditions)
+  const invoiceWithPaymentLink = paymentLinkUrl ? { ...invoice, paymentLinkUrl } : invoice;
 
   const results: DispatchResult = {};
   const tasks: Promise<void>[] = [];
@@ -399,8 +402,8 @@ export async function dispatchInvoice(invoiceId: string): Promise<DispatchResult
   if (invoice.customer.email) {
     tasks.push(
       (async () => {
-        const html = buildEmailHtml(invoice);
-        const text = buildEmailText(invoice);
+        const html = buildEmailHtml(invoiceWithPaymentLink);
+        const text = buildEmailText(invoiceWithPaymentLink);
         const subject = `Invoice ${invoice.number} from ${invoice.workspace.name}`;
         const response = await sendEmail({ to: invoice.customer.email, subject, html, text });
         if (response.success) {
@@ -422,7 +425,7 @@ export async function dispatchInvoice(invoiceId: string): Promise<DispatchResult
   if (phone) {
     tasks.push(
       (async () => {
-        const body = buildSmsMessage(invoice);
+        const body = buildSmsMessage(invoiceWithPaymentLink);
         const response = await sendSms({ to: phone, body });
         if (response.success) {
           results.sms = { success: true };
