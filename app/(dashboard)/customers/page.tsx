@@ -90,9 +90,14 @@ export default async function CustomersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/customers/${customer.id}`}>Open</Link>
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/customers/${customer.id}/edit`}>Edit</Link>
+                      </Button>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/customers/${customer.id}`}>View</Link>
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

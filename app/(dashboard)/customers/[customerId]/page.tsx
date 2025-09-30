@@ -37,9 +37,14 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
             <CardTitle className="text-2xl">{customer.businessName}</CardTitle>
             <CardDescription>{customer.email}</CardDescription>
           </div>
-          <Button variant="outline" asChild>
-            <Link href={`/invoices/new?customerId=${customer.id}`}>Create invoice</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/customers/${customer.id}/edit`}>Edit customer</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href={`/invoices/new?customerId=${customer.id}`}>Create invoice</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-3">
           <div>
