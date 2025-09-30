@@ -92,23 +92,126 @@ function buildEmailHtml(invoice: InvoiceWithRelations) {
   const trackingUrl = getTrackingPixelUrl(invoice);
 
   return `
-  <div style="font-family: sans-serif; line-height: 1.6;">
-    <h2 style="margin-bottom: 0.5rem;">Invoice ${invoice.number}</h2>
-    <p style="margin-top: 0;">Hi ${invoice.customer.primaryContact ?? invoice.customer.businessName},</p>
-    <p>${invoice.workspace.name} just sent you an invoice for <strong>${formattedTotal}</strong> due on ${dueDate}.</p>
-    <p style="margin: 1.5rem 0;">
-      <a href="${invoiceUrl}" style="background:#111827;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">View invoice</a>
-    </p>
-    <p>If you have any questions, reply to this email.</p>
-    <img src="${trackingUrl}" alt="" width="1" height="1" style="display:none;" />
-  </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice ${invoice.number} from ${invoice.workspace.name}</title>
+</head>
+<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; background: #ffffff;">
+    <tr>
+      <td style="padding: 0;">
+        
+        <!-- Header -->
+        <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #eee;">
+          <h1 style="margin: 0; color: #2c3e50; font-size: 24px;">${invoice.workspace.name}</h1>
+        </div>
+        
+        <!-- Main Content -->
+        <div style="padding: 30px 20px;">
+          <h2 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 20px;">Invoice ${invoice.number}</h2>
+          
+          <p style="margin: 0 0 15px 0;">Dear ${invoice.customer.primaryContact || invoice.customer.businessName},</p>
+          
+          <p style="margin: 0 0 15px 0;">
+            Thank you for your business. We have prepared an invoice for <strong>${formattedTotal}</strong> 
+            due on <strong>${dueDate}</strong>.
+          </p>
+          
+          <p style="margin: 0 0 25px 0;">
+            Please review the invoice details and submit payment at your convenience.
+          </p>
+          
+          <!-- Call to Action -->
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${invoiceUrl}" 
+               style="display: inline-block; 
+                      background-color: #3498db; 
+                      color: #ffffff; 
+                      text-decoration: none; 
+                      padding: 12px 24px; 
+                      border-radius: 4px; 
+                      font-weight: bold;
+                      font-size: 16px;">
+              View Invoice & Pay Online
+            </a>
+          </div>
+          
+          <p style="margin: 25px 0 15px 0; font-size: 14px; color: #666;">
+            Or copy and paste this link into your browser:<br>
+            <span style="word-break: break-all;">${invoiceUrl}</span>
+          </p>
+          
+          <div style="margin: 30px 0; padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2c3e50;">Payment Options:</h3>
+            <ul style="margin: 0; padding-left: 20px; color: #555;">
+              <li>Credit or debit card (secure online payment)</li>
+              <li>Bank transfer details provided on invoice</li>
+              <li>Contact us for alternative payment methods</li>
+            </ul>
+          </div>
+          
+          <p style="margin: 20px 0 0 0; font-size: 14px; color: #666;">
+            Questions about this invoice? Simply reply to this email and we will be happy to help.
+          </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="padding: 20px; background-color: #f8f9fa; border-top: 1px solid #eee; font-size: 12px; color: #666;">
+          <p style="margin: 0 0 10px 0;"><strong>${invoice.workspace.name}</strong></p>
+          <p style="margin: 10px 0;">
+            Email: notifications@ledgerflow.org<br>
+            Website: <a href="https://ledgerflow.org" style="color: #3498db;">https://ledgerflow.org</a>
+          </p>
+          <p style="margin: 15px 0 0 0; font-size: 11px; color: #999;">
+            This email was sent regarding Invoice ${invoice.number}. 
+            If you believe you received this email in error, please contact us immediately.
+          </p>
+        </div>
+        
+      </td>
+    </tr>
+  </table>
+  
+  <!-- Tracking Pixel -->
+  <img src="${trackingUrl}" alt="" width="1" height="1" style="display: none;" />
+</body>
+</html>
   `;
 }
 
 function buildEmailText(invoice: InvoiceWithRelations) {
   const { formattedTotal, dueDate } = buildInvoiceSummary(invoice);
   const invoiceUrl = getInvoiceUrl(invoice);
-  return `Invoice ${invoice.number} for ${formattedTotal} is due on ${dueDate}. View the invoice here: ${invoiceUrl}`;
+  
+  return `Invoice ${invoice.number} from ${invoice.workspace.name}
+
+Dear ${invoice.customer.primaryContact || invoice.customer.businessName},
+
+Thank you for your business. We have prepared an invoice for ${formattedTotal} due on ${dueDate}.
+
+Please review the invoice details and submit payment at your convenience.
+
+View Invoice & Pay Online: ${invoiceUrl}
+
+Payment Options:
+- Credit or debit card (secure online payment)
+- Bank transfer details provided on invoice
+- Contact us for alternative payment methods
+
+Questions about this invoice? Simply reply to this email and we will be happy to help.
+
+Best regards,
+${invoice.workspace.name}
+
+Email: notifications@ledgerflow.org
+Website: https://ledgerflow.org
+
+---
+This email was sent regarding Invoice ${invoice.number}.
+If you believe you received this email in error, please contact us immediately.`;
 }
 
 function buildSmsMessage(invoice: InvoiceWithRelations) {

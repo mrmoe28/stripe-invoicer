@@ -54,7 +54,7 @@ export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItem
       after_completion: {
         type: "redirect",
         redirect: {
-          url: buildEmailUrl(`invoices/${invoice.id}`),
+          url: buildEmailUrl(`payment-success?invoice=${invoice.id}`),
         },
       },
     });
