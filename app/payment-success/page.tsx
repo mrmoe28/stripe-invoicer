@@ -1,3 +1,5 @@
+"use client";
+
 import { Suspense } from "react";
 import { CheckCircle, Download, Mail, ArrowLeft } from "lucide-react";
 import { useSearchParams } from "next/navigation";
