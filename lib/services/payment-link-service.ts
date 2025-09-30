@@ -53,7 +53,7 @@ export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItem
       after_completion: {
         type: "redirect",
         redirect: {
-          url: `${process.env.APP_BASE_URL ?? "http://localhost:3000"}/invoices/${invoice.id}`,
+          url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL || "https://ledgerflow.org"}/invoices/${invoice.id}`,
         },
       },
     });

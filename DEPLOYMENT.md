@@ -30,7 +30,8 @@ STRIPE_WEBHOOK_SECRET="whsec_YOUR_WEBHOOK_SECRET_HERE"
 ### Email & Messaging
 ```bash
 RESEND_API_KEY="re_YOUR_RESEND_API_KEY_HERE"
-NOTIFICATION_FROM_EMAIL="notifications@ledgerflow.org"
+# IMPORTANT: Use a subdomain like mail.ledgerflow.org to avoid spam filters
+NOTIFICATION_FROM_EMAIL="notifications@mail.ledgerflow.org"
 NOTIFICATION_FROM_NAME="Ledgerflow"
 INVOICE_ALERT_RECIPIENTS="your-email@domain.com"
 
@@ -56,6 +57,8 @@ Copy `.env.production` to your deployment platform or use the individual variabl
 2. **Production URLs**: All environment variables now use `https://ledgerflow.org` instead of localhost
 3. **Secure cookies**: NextAuth configured to use secure cookies in production
 4. **Debug mode**: Disabled in production for better performance
+5. **Email URLs fixed**: Invoice notification emails now use production URLs instead of localhost:3000
+6. **Email subdomain**: Configured to use mail.ledgerflow.org subdomain to avoid spam filters
 
 ## Testing
 

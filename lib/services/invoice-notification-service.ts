@@ -12,7 +12,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 
 import { sendEmail, sendSms } from "./notification-service";
 
-const DEFAULT_APP_URL = process.env.APP_BASE_URL ?? "http://localhost:3000";
+const DEFAULT_APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL || "https://ledgerflow.org";
 
 export type DispatchResult = {
   email?: { success: boolean; error?: string };

@@ -24,7 +24,7 @@ export async function sendEmail({
   subject,
   html,
   text,
-  fromEmail = process.env.NOTIFICATION_FROM_EMAIL ?? "no-reply@localhost",
+  fromEmail = process.env.NOTIFICATION_FROM_EMAIL ?? "notifications@mail.ledgerflow.org",
   fromName = process.env.NOTIFICATION_FROM_NAME ?? "Ledgerflow",
   headers: customHeaders,
 }: EmailPayload): Promise<EmailResult> {
