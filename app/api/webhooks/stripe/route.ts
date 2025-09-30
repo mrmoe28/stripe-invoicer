@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { markInvoicePaid } from "@/lib/invoiceStore";
+import Stripe from "stripe";
 
 export const runtime = "nodejs";
 
@@ -16,15 +17,16 @@ export async function POST(req: NextRequest) {
 
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig, whSecret);
-  } catch (err: any) {
-    console.error("Webhook signature verification failed.", err.message);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error("Webhook signature verification failed.", errorMessage);
+    return new NextResponse(`Webhook Error: ${errorMessage}`, { status: 400 });
   }
 
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object as any;
+        const session = event.data.object as Stripe.Checkout.Session;
         const invoiceId = session.metadata?.invoice_id;
         if (invoiceId) {
           markInvoicePaid(invoiceId); // TODO: replace with DB update
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
         break;
     }
     return NextResponse.json({ received: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Webhook handler error:", err);
     return new NextResponse("Webhook handler failed", { status: 500 });
   }
@@ -48,4 +50,4 @@ export const config = {
   api: {
     bodyParser: false,
   },
-} as any;
+};

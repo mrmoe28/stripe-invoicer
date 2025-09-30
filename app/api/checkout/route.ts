@@ -48,8 +48,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ url: session.url }, { status: 200 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Checkout error:", err);
-    return NextResponse.json({ error: err.message || "Internal error" }, { status: 500 });
+    const errorMessage = err instanceof Error ? err.message : "Internal error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
