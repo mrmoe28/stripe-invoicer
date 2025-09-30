@@ -264,7 +264,7 @@ test.describe('Production Payment Flow Diagnostics', () => {
       
       await newPage.close();
       
-    } catch (error) {
+    } catch {
       console.log('⚠️  Payment button click test completed (expected with test URLs)');
     }
     

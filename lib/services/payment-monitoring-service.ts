@@ -91,8 +91,8 @@ export async function getPaymentLinkMetrics(
     // Extract common errors
     const errorCounts = new Map<string, number>();
     failed.forEach(event => {
-      const detail = event.detail as any;
-      const error = detail?.error || 'Unknown error';
+      const detail = event.detail as Record<string, unknown>;
+      const error = (detail?.error as string) || 'Unknown error';
       errorCounts.set(error, (errorCounts.get(error) || 0) + 1);
     });
 
@@ -103,7 +103,10 @@ export async function getPaymentLinkMetrics(
 
     // Calculate average creation time
     const durations = events
-      .map(e => (e.detail as any)?.duration)
+      .map(e => {
+        const detail = e.detail as Record<string, unknown>;
+        return detail?.duration as number;
+      })
       .filter(d => typeof d === 'number');
     const averageCreationTime = durations.length > 0 
       ? durations.reduce((sum, duration) => sum + duration, 0) / durations.length 
