@@ -19,7 +19,7 @@ type NavItem = {
 export const dashboardNav: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
   { label: "Invoices", href: "/invoices", icon: "invoices" },
-  { label: "Templates", href: "/templates", icon: "document" },
+  { label: "Templates", href: "/templates", icon: "fileText" },
   { label: "Customers", href: "/customers", icon: "users" },
   { label: "Payments", href: "/payments", icon: "payments" },
   { label: "Settings", href: "/settings", icon: "settings" },
