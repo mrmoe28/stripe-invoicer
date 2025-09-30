@@ -38,6 +38,7 @@ export default async function CustomersPage() {
       id: customer.id,
       name: customer.businessName,
       email: customer.email,
+      customerType: (customer as any).customerType || "BUSINESS",
       revenue: totalRevenue,
       invoiceCount: invoices.length,
       status,
@@ -70,6 +71,7 @@ export default async function CustomersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Total revenue</TableHead>
                 <TableHead>Invoices</TableHead>
@@ -81,6 +83,11 @@ export default async function CustomersPage() {
               {rows.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {customer.customerType === "INDIVIDUAL" ? "Individual" : "Business"}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">{customer.email}</TableCell>
                   <TableCell>{formatCurrency(customer.revenue)}</TableCell>
                   <TableCell>{customer.invoiceCount}</TableCell>
@@ -103,7 +110,7 @@ export default async function CustomersPage() {
               ))}
               {rows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center text-sm text-muted-foreground">
                     No customers yet. Import your Stripe customers or create one manually.
                   </TableCell>
                 </TableRow>

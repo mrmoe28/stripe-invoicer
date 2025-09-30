@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { createCustomerAction } from "@/app/(dashboard)/customers/actions";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { customerFormSchema, type CustomerFormValues } from "@/lib/validations/customer";
 
@@ -21,6 +22,7 @@ export function CustomerForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
@@ -29,6 +31,8 @@ export function CustomerForm() {
       primaryContact: "",
       email: "",
       phone: "",
+      customerType: "BUSINESS",
+      taxId: "",
       addressLine1: "",
       addressLine2: "",
       city: "",
@@ -62,8 +66,35 @@ export function CustomerForm() {
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="businessName">Business name</Label>
-              <Input id="businessName" {...register("businessName")} />
+              <Label htmlFor="customerType">Customer Type</Label>
+              <Controller
+                name="customerType"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger id="customerType">
+                      <SelectValue placeholder="Select customer type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="BUSINESS">Business</SelectItem>
+                      <SelectItem value="INDIVIDUAL">Individual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.customerType && (
+                <p className="text-xs text-destructive">{errors.customerType.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="taxId">Tax ID / VAT Number</Label>
+              <Input id="taxId" {...register("taxId")} placeholder="Optional" />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="businessName">Name</Label>
+              <Input id="businessName" {...register("businessName")} placeholder="Business or individual name" />
               {errors.businessName && (
                 <p className="text-xs text-destructive">{errors.businessName.message}</p>
               )}

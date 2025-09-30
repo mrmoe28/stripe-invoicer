@@ -5,6 +5,8 @@ export const customerFormSchema = z.object({
   primaryContact: z.string().optional(),
   email: z.string().email("Provide a valid email"),
   phone: z.string().optional(),
+  customerType: z.enum(["BUSINESS", "INDIVIDUAL"]),
+  taxId: z.string().optional(),
   addressLine1: z.string().optional(),
   addressLine2: z.string().optional(),
   city: z.string().optional(),

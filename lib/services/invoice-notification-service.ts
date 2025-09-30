@@ -6,7 +6,9 @@ import {
   MembershipRole,
   Prisma,
 } from "@prisma/client";
+import { renderToStaticMarkup } from "react-dom/server";
 
+import { InvoiceEmailTemplate } from "@/lib/email/invoice-template";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { buildEmailUrl } from "@/lib/utils/email-helpers";
@@ -87,99 +89,52 @@ function buildInvoiceSummary(invoice: InvoiceWithRelations) {
 }
 
 function buildEmailHtml(invoice: InvoiceWithRelations) {
-  const { formattedTotal, dueDate } = buildInvoiceSummary(invoice);
   const invoiceUrl = getInvoiceUrl(invoice);
-  const trackingUrl = getTrackingPixelUrl(invoice);
+  
+  const items = invoice.lineItems.map(item => ({
+    description: item.description,
+    quantity: item.quantity,
+    price: Number(item.unitPrice).toFixed(2),
+    total: Number(item.amount).toFixed(2),
+  }));
 
-  return `
-<!DOCTYPE html>
+  const subtotal = invoice.lineItems.reduce((total, item) => total + Number(item.amount ?? 0), 0);
+  const taxAmount = Number(invoice.taxTotal ?? 0);
+  
+  const emailElement = InvoiceEmailTemplate({
+    customerName: invoice.customer.primaryContact || invoice.customer.businessName,
+    invoiceNumber: invoice.number,
+    invoiceDate: formatDate(invoice.issueDate),
+    dueDate: formatDate(invoice.dueDate),
+    amount: Number(invoice.total).toFixed(2),
+    currency: invoice.currency ?? "USD",
+    paymentLink: invoiceUrl,
+    items,
+    businessName: invoice.workspace.name,
+    businessEmail: "notifications@ledgerflow.org",
+    businessAddress: invoice.workspace.address || undefined,
+    customerEmail: invoice.customer.email || undefined,
+    notes: invoice.notes || undefined,
+    subtotal: subtotal.toFixed(2),
+    tax: taxAmount > 0 ? taxAmount.toFixed(2) : undefined,
+    total: Number(invoice.total).toFixed(2),
+  });
+
+  const html = renderToStaticMarkup(emailElement);
+  const trackingUrl = getTrackingPixelUrl(invoice);
+  
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invoice ${invoice.number} from ${invoice.workspace.name}</title>
 </head>
-<body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-  <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; background: #ffffff;">
-    <tr>
-      <td style="padding: 0;">
-        
-        <!-- Header -->
-        <div style="text-align: center; padding: 20px 0; border-bottom: 1px solid #eee;">
-          <h1 style="margin: 0; color: #2c3e50; font-size: 24px;">${invoice.workspace.name}</h1>
-        </div>
-        
-        <!-- Main Content -->
-        <div style="padding: 30px 20px;">
-          <h2 style="margin: 0 0 20px 0; color: #2c3e50; font-size: 20px;">Invoice ${invoice.number}</h2>
-          
-          <p style="margin: 0 0 15px 0;">Dear ${invoice.customer.primaryContact || invoice.customer.businessName},</p>
-          
-          <p style="margin: 0 0 15px 0;">
-            Thank you for your business. We have prepared an invoice for <strong>${formattedTotal}</strong> 
-            due on <strong>${dueDate}</strong>.
-          </p>
-          
-          <p style="margin: 0 0 25px 0;">
-            Please review the invoice details and submit payment at your convenience.
-          </p>
-          
-          <!-- Call to Action -->
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${invoiceUrl}" 
-               style="display: inline-block; 
-                      background-color: #3498db; 
-                      color: #ffffff; 
-                      text-decoration: none; 
-                      padding: 12px 24px; 
-                      border-radius: 4px; 
-                      font-weight: bold;
-                      font-size: 16px;">
-              View Invoice & Pay Online
-            </a>
-          </div>
-          
-          <p style="margin: 25px 0 15px 0; font-size: 14px; color: #666;">
-            Or copy and paste this link into your browser:<br>
-            <span style="word-break: break-all;">${invoiceUrl}</span>
-          </p>
-          
-          <div style="margin: 30px 0; padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
-            <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2c3e50;">Payment Options:</h3>
-            <ul style="margin: 0; padding-left: 20px; color: #555;">
-              <li>Credit or debit card (secure online payment)</li>
-              <li>Bank transfer details provided on invoice</li>
-              <li>Contact us for alternative payment methods</li>
-            </ul>
-          </div>
-          
-          <p style="margin: 20px 0 0 0; font-size: 14px; color: #666;">
-            Questions about this invoice? Simply reply to this email and we will be happy to help.
-          </p>
-        </div>
-        
-        <!-- Footer -->
-        <div style="padding: 20px; background-color: #f8f9fa; border-top: 1px solid #eee; font-size: 12px; color: #666;">
-          <p style="margin: 0 0 10px 0;"><strong>${invoice.workspace.name}</strong></p>
-          <p style="margin: 10px 0;">
-            Email: notifications@ledgerflow.org<br>
-            Website: <a href="https://ledgerflow.org" style="color: #3498db;">https://ledgerflow.org</a>
-          </p>
-          <p style="margin: 15px 0 0 0; font-size: 11px; color: #999;">
-            This email was sent regarding Invoice ${invoice.number}. 
-            If you believe you received this email in error, please contact us immediately.
-          </p>
-        </div>
-        
-      </td>
-    </tr>
-  </table>
-  
-  <!-- Tracking Pixel -->
+<body style="margin: 0; padding: 0;">
+  ${html}
   <img src="${trackingUrl}" alt="" width="1" height="1" style="display: none;" />
 </body>
-</html>
-  `;
+</html>`;
 }
 
 function buildEmailText(invoice: InvoiceWithRelations) {

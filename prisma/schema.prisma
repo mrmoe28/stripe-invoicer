@@ -52,6 +52,11 @@ enum DepositType {
   FIXED
 }
 
+enum CustomerType {
+  BUSINESS
+  INDIVIDUAL
+}
+
 model User {
   id                  String       @id @default(cuid())
   email               String       @unique
@@ -93,7 +98,7 @@ model Membership {
 }
 
 model Customer {
-  id               String     @id @default(cuid())
+  id               String        @id @default(cuid())
   businessName     String
   primaryContact   String?
   email            String
@@ -104,13 +109,15 @@ model Customer {
   state            String?
   postalCode       String?
   country          String?
+  customerType     CustomerType  @default(BUSINESS)
+  taxId            String?
   notes            String?
-  stripeCustomerId String?    @unique
-  workspace        Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  stripeCustomerId String?       @unique
+  workspace        Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   workspaceId      String
   invoices         Invoice[]
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 }
 
 model Invoice {
