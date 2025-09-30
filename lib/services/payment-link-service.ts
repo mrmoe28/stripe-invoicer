@@ -21,6 +21,23 @@ function getPaymentSuccessUrl(invoiceId: string): string {
   return `${devUrl}${devUrl.includes('?') ? '&' : '?'}invoice=${invoiceId}`;
 }
 
+function getPublicInvoiceUrl(invoiceId: string): string {
+  // Public invoice URL for sharing with customers
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL_URL) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
+                   'https://ledgerflow.org';
+    return `${baseUrl}/public/invoices/${invoiceId}`;
+  }
+  
+  // In development
+  const devUrl = process.env.STRIPE_REDIRECT_BASE_URL || buildEmailUrl('');
+  const cleanUrl = devUrl.replace(/\/+$/, ''); // Remove trailing slashes
+  return `${cleanUrl}/public/invoices/${invoiceId}`;
+}
+
+export { getPublicInvoiceUrl };
+
 export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItems: InvoiceLine[] }) {
   const startTime = Date.now();
   console.log('🔗 Attempting to create Stripe payment link for invoice:', invoice.number);

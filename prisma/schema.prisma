@@ -194,18 +194,21 @@ model InvoiceLine {
 }
 
 model Payment {
-  id                  String        @id @default(cuid())
-  amount              Decimal       @default(0)
-  currency            String        @default("USD")
-  status              PaymentStatus @default(PENDING)
-  method              String?
-  processedAt         DateTime?
-  stripePaymentIntent String?       @unique
-  rawPayload          Json?
-  invoice             Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  invoiceId           String
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                    String        @id @default(cuid())
+  amount                Decimal       @default(0)
+  currency              String        @default("USD")
+  status                PaymentStatus @default(PENDING)
+  method                String?
+  processedAt           DateTime?
+  stripePaymentIntent   String?       @unique
+  stripeCheckoutSession String?       @unique
+  rawPayload            Json?
+  invoice               Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId             String
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@unique([invoiceId, stripeCheckoutSession])
 }
 
 model Account {
