@@ -257,21 +257,38 @@ function buildEmailHtml(invoice: InvoiceWithRelations) {
 
           <!-- Payment Button -->
           <div style="text-align: center; margin-bottom: 32px;">
-            <a href="${invoiceUrl}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 16px 32px; border-radius: 6px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-              Pay Invoice Now
+            <a href="${invoiceUrl}" 
+               target="_blank" 
+               rel="noopener nofollow"
+               role="button"
+               aria-label="Pay Invoice ${invoice.number} - Secure payment via Stripe"
+               style="display: inline-block; background-color: #3b82f6; color: white !important; padding: 16px 32px; border-radius: 6px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 2px solid #3b82f6; mso-padding-alt: 16px 32px; mso-text-raise: 4px;">
+              <!--[if mso]>
+              <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="height:54px;v-text-anchor:middle;width:200px;">
+                <v:fill type="tile" color="#3b82f6" />
+                <v:textbox inset="0,0,0,0">
+              <![endif]-->
+              <span style="color: white !important; text-decoration: none;">Pay Invoice Now</span>
+              <!--[if mso]>
+                </v:textbox>
+              </v:rect>
+              <![endif]-->
             </a>
             <p style="font-size: 12px; color: #6b7280; margin-top: 12px;">
-              Secure payment powered by Stripe
+              🔒 Secure payment powered by Stripe
             </p>
           </div>
 
           <!-- Alternative Link -->
-          <div style="background-color: #f9fafb; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
-            <p style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0;">
-              Or copy this link to pay online:
+          <div style="background-color: #f9fafb; border-radius: 6px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+            <p style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0; font-weight: 500;">
+              Having trouble with the button above? Copy and paste this link:
             </p>
-            <p style="font-size: 12px; color: #3b82f6; word-break: break-all; margin: 0;">
-              ${invoiceUrl}
+            <p style="font-size: 12px; color: #3b82f6; word-break: break-all; margin: 0; padding: 8px; background-color: white; border-radius: 4px; border: 1px solid #d1d5db;">
+              <a href="${invoiceUrl}" target="_blank" rel="noopener nofollow" style="color: #3b82f6; text-decoration: none;">${invoiceUrl}</a>
+            </p>
+            <p style="font-size: 11px; color: #9ca3af; margin: 8px 0 0 0;">
+              💡 Right-click and select "Copy link address" or highlight and copy the text above
             </p>
           </div>
         </td>
