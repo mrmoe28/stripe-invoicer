@@ -61,9 +61,11 @@ async function getInvoiceWithRelations(invoiceId: string) {
 }
 
 function getInvoiceUrl(invoice: InvoiceWithRelations) {
+  // Always prioritize Stripe payment link for direct payments
   if (invoice.paymentLinkUrl) {
     return invoice.paymentLinkUrl;
   }
+  // Fallback to public invoice page (no authentication required)
   return buildEmailUrl(`invoices/${invoice.id}`);
 }
 
