@@ -4,10 +4,15 @@ import { getStripeClient } from "@/lib/stripe";
 import { buildEmailUrl } from "@/lib/utils/email-helpers";
 
 export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItems: InvoiceLine[] }) {
+  console.log('🔗 Attempting to create Stripe payment link for invoice:', invoice.number);
+  
   const stripe = getStripeClient();
   if (!stripe) {
+    console.log('❌ Stripe client not available - check STRIPE_SECRET_KEY');
     return null;
   }
+
+  console.log('✅ Stripe client initialized');
 
   try {
     const depositEnabled = Boolean(
@@ -48,6 +53,13 @@ export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItem
       ...(depositEnabled && invoice.depositType ? { depositType: invoice.depositType } : {}),
     };
 
+    console.log('📝 Creating payment link with data:', {
+      lineItemsCount: lineItems.length,
+      currency: invoice.currency,
+      total: invoice.total,
+      depositEnabled
+    });
+
     const link = await stripe.paymentLinks.create({
       line_items: lineItems,
       metadata,
@@ -59,9 +71,14 @@ export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItem
       },
     });
 
+    console.log('✅ Stripe payment link created successfully:', link.url);
     return link.url;
   } catch (error) {
-    console.error("Failed to create Stripe payment link", error);
+    console.error("❌ Failed to create Stripe payment link:", error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return null;
   }
 }

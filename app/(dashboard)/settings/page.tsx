@@ -1,14 +1,24 @@
 import { EmailDeliveryCard } from "@/components/settings/email-delivery-card";
+import { CompanySettingsForm } from "@/components/forms/company-settings-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { getCurrentUser } from "@/lib/auth";
 import { getEmailDomainInfo } from "@/lib/services/email-domain-service";
+import { getWorkspaceWithCompanyInfo } from "@/lib/services/workspace-service";
+import { updateCompanySettingsAction } from "./actions";
 
 export default async function SettingsPage() {
+  const user = await getCurrentUser();
   const emailDomainInfo = await getEmailDomainInfo();
+  const workspace = await getWorkspaceWithCompanyInfo(user.workspaceId);
+
+  if (!workspace) {
+    throw new Error("Workspace not found");
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -21,28 +31,12 @@ export default async function SettingsPage() {
 
       <EmailDeliveryCard initialInfo={emailDomainInfo} />
 
+      <CompanySettingsForm 
+        workspace={workspace} 
+        onSave={updateCompanySettingsAction} 
+      />
+
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Brand profile</CardTitle>
-            <CardDescription>Information displayed on invoices and client emails.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="businessName">Business name</Label>
-              <Input id="businessName" placeholder="Ledgerflow Studio" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="replyTo">Billing email</Label>
-              <Input id="replyTo" type="email" placeholder="billing@ledgerflow.app" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="footer">Invoice footer</Label>
-              <Textarea id="footer" placeholder="Thank you for choosing Ledgerflow." rows={5} />
-            </div>
-            <Button className="w-full sm:w-auto">Save branding</Button>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>

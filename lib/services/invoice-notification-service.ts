@@ -97,6 +97,22 @@ function buildEmailHtml(invoice: InvoiceWithRelations) {
   const currency = invoice.currency ?? "USD";
   const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '';
   
+  // Company information
+  const companyName = (invoice.workspace as any).companyName || invoice.workspace.name;
+  const companyEmail = (invoice.workspace as any).companyEmail || "notifications@ledgerflow.org";
+  const companyPhone = (invoice.workspace as any).companyPhone;
+  const companyWebsite = (invoice.workspace as any).companyWebsite;
+  const logoUrl = (invoice.workspace as any).logoUrl;
+  const companyAddress = (invoice.workspace as any).companyAddress;
+  const companyCity = (invoice.workspace as any).companyCity;
+  const companyState = (invoice.workspace as any).companyState;
+  const companyZip = (invoice.workspace as any).companyZip;
+  const companyCountry = (invoice.workspace as any).companyCountry;
+  
+  // Build full company address
+  const addressParts = [companyAddress, companyCity, companyState, companyZip, companyCountry].filter(Boolean);
+  const fullAddress = addressParts.join(', ');
+  
   // Build line items HTML
   const itemsHtml = invoice.lineItems.map(item => `
     <tr style="border-bottom: 1px solid #f3f4f6;">
@@ -120,7 +136,17 @@ function buildEmailHtml(invoice: InvoiceWithRelations) {
       <!-- Header -->
       <tr>
         <td style="background-color: #0f172a; padding: 32px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">${invoice.workspace.name}</h1>
+          ${logoUrl ? `
+            <img src="${logoUrl}" alt="${companyName}" style="max-height: 60px; max-width: 200px; margin: 0 auto 16px auto; display: block;" />
+          ` : ''}
+          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">${companyName}</h1>
+          ${companyPhone || companyWebsite ? `
+            <div style="margin-top: 8px; font-size: 14px; color: #cbd5e1;">
+              ${companyPhone ? `<span>${companyPhone}</span>` : ''}
+              ${companyPhone && companyWebsite ? ' • ' : ''}
+              ${companyWebsite ? `<a href="${companyWebsite}" style="color: #cbd5e1; text-decoration: none;">${companyWebsite.replace(/^https?:\/\//, '')}</a>` : ''}
+            </div>
+          ` : ''}
         </td>
       </tr>
       
@@ -234,11 +260,16 @@ function buildEmailHtml(invoice: InvoiceWithRelations) {
             <tr>
               <td>
                 <p style="font-size: 12px; color: #6b7280; margin: 0 0 4px 0;">
-                  <strong>${invoice.workspace.name}</strong>
+                  <strong>${companyName}</strong>
                 </p>
                 <p style="font-size: 12px; color: #6b7280; margin: 0;">
-                  notifications@ledgerflow.org
+                  ${companyEmail}
                 </p>
+                ${fullAddress ? `
+                <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">
+                  ${fullAddress}
+                </p>
+                ` : ''}
               </td>
               <td style="text-align: right;">
                 <p style="font-size: 12px; color: #9ca3af; margin: 0;">
@@ -262,7 +293,22 @@ function buildEmailText(invoice: InvoiceWithRelations) {
   const { formattedTotal, dueDate } = buildInvoiceSummary(invoice);
   const invoiceUrl = getInvoiceUrl(invoice);
   
-  return `Invoice ${invoice.number} from ${invoice.workspace.name}
+  // Company information
+  const companyName = (invoice.workspace as any).companyName || invoice.workspace.name;
+  const companyEmail = (invoice.workspace as any).companyEmail || "notifications@ledgerflow.org";
+  const companyWebsite = (invoice.workspace as any).companyWebsite;
+  const companyPhone = (invoice.workspace as any).companyPhone;
+  const companyAddress = (invoice.workspace as any).companyAddress;
+  const companyCity = (invoice.workspace as any).companyCity;
+  const companyState = (invoice.workspace as any).companyState;
+  const companyZip = (invoice.workspace as any).companyZip;
+  const companyCountry = (invoice.workspace as any).companyCountry;
+  
+  // Build full company address
+  const addressParts = [companyAddress, companyCity, companyState, companyZip, companyCountry].filter(Boolean);
+  const fullAddress = addressParts.join(', ');
+  
+  return `Invoice ${invoice.number} from ${companyName}
 
 Dear ${invoice.customer.primaryContact || invoice.customer.businessName},
 
@@ -280,10 +326,12 @@ Payment Options:
 Questions about this invoice? Simply reply to this email and we will be happy to help.
 
 Best regards,
-${invoice.workspace.name}
+${companyName}
 
-Email: notifications@ledgerflow.org
-Website: https://ledgerflow.org
+Email: ${companyEmail}${companyWebsite ? `
+Website: ${companyWebsite}` : ''}${companyPhone ? `
+Phone: ${companyPhone}` : ''}${fullAddress ? `
+Address: ${fullAddress}` : ''}
 
 ---
 This email was sent regarding Invoice ${invoice.number}.

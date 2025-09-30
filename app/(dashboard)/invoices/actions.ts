@@ -20,13 +20,18 @@ export async function createInvoiceAction(rawValues: InvoiceFormValues) {
 
   const invoice = await createInvoice(user.workspaceId, values);
 
+  console.log('🔗 Payment link enabled:', values.enablePaymentLink);
   if (values.enablePaymentLink) {
+    console.log('🔗 Creating payment link for invoice:', invoice.number);
     const paymentLink = await maybeCreateStripePaymentLink(invoice);
     if (paymentLink) {
+      console.log('✅ Payment link created, updating invoice with URL:', paymentLink);
       await prisma.invoice.update({
         where: { id: invoice.id },
         data: { paymentLinkUrl: paymentLink },
       });
+    } else {
+      console.log('❌ Payment link creation failed');
     }
   }
 
@@ -159,13 +164,18 @@ export async function sendInvoiceAction(invoiceId: string) {
   }
 
   // Create Stripe payment link if not already created
+  console.log('📧 Sending invoice:', invoice.number, 'Has payment link:', !!invoice.paymentLinkUrl);
   if (!invoice.paymentLinkUrl) {
+    console.log('🔗 Creating payment link for sending invoice');
     const paymentLink = await maybeCreateStripePaymentLink(invoice);
     if (paymentLink) {
+      console.log('✅ Payment link created for sending, updating invoice:', paymentLink);
       await prisma.invoice.update({
         where: { id: invoice.id },
         data: { paymentLinkUrl: paymentLink },
       });
+    } else {
+      console.log('❌ Payment link creation failed for sending');
     }
   }
 
