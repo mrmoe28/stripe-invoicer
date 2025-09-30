@@ -178,3 +178,21 @@ export async function updateInvoice(workspaceId: string, invoiceId: string, valu
     },
   });
 }
+
+export async function deleteInvoice(workspaceId: string, invoiceId: string) {
+  // First verify the invoice exists and belongs to the workspace
+  const invoice = await prisma.invoice.findFirst({
+    where: { id: invoiceId, workspaceId },
+    select: { id: true, status: true },
+  });
+
+  if (!invoice) {
+    throw new Error("Invoice not found");
+  }
+
+  // Delete the invoice and its related data (line items, events, etc.)
+  // Prisma will handle cascading deletes based on the schema
+  return prisma.invoice.delete({
+    where: { id: invoiceId },
+  });
+}

@@ -7,7 +7,7 @@ import { InvoiceStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { maybeCreateStripePaymentLink } from "@/lib/services/payment-link-service";
-import { createInvoice, updateInvoice } from "@/lib/services/invoice-service";
+import { createInvoice, updateInvoice, deleteInvoice } from "@/lib/services/invoice-service";
 import {
   dispatchInvoice,
   notifyInvoicePaid,
@@ -186,4 +186,13 @@ export async function sendInvoiceAction(invoiceId: string) {
   revalidatePath(`/invoices/${invoiceId}`);
 
   return result;
+}
+
+export async function deleteInvoiceAction(invoiceId: string) {
+  const user = await getCurrentUser();
+  
+  await deleteInvoice(user.workspaceId, invoiceId);
+
+  revalidatePath("/dashboard");
+  revalidatePath("/invoices");
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Icon } from "@/components/icons";
+import { DeleteInvoiceButton } from "@/components/forms/delete-invoice-button";
 import { getCurrentUser } from "@/lib/auth";
 import { listInvoices } from "@/lib/services/invoice-service";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -96,9 +97,15 @@ export default async function InvoicesPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/invoices/${invoice.id}`}>View</Link>
-                    </Button>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/invoices/${invoice.id}`}>View</Link>
+                      </Button>
+                      <DeleteInvoiceButton 
+                        invoiceId={invoice.id} 
+                        invoiceNumber={invoice.number} 
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
