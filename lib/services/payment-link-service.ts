@@ -1,6 +1,7 @@
 import type { Invoice, InvoiceLine } from "@prisma/client";
 
 import { getStripeClient } from "@/lib/stripe";
+import { buildEmailUrl } from "@/lib/utils/email-helpers";
 
 export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItems: InvoiceLine[] }) {
   const stripe = getStripeClient();
@@ -53,7 +54,7 @@ export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItem
       after_completion: {
         type: "redirect",
         redirect: {
-          url: `${process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL || "https://ledgerflow.org"}/invoices/${invoice.id}`,
+          url: buildEmailUrl(`invoices/${invoice.id}`),
         },
       },
     });

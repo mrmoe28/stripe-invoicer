@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { getSenderEmail, getSenderName } from "@/lib/utils/email-helpers";
 
 const RESEND_API_URL = "https://api.resend.com/emails";
 
@@ -24,8 +25,8 @@ export async function sendEmail({
   subject,
   html,
   text,
-  fromEmail = process.env.NOTIFICATION_FROM_EMAIL ?? "notifications@mail.ledgerflow.org",
-  fromName = process.env.NOTIFICATION_FROM_NAME ?? "Ledgerflow",
+  fromEmail = getSenderEmail(),
+  fromName = getSenderName(),
   headers: customHeaders,
 }: EmailPayload): Promise<EmailResult> {
   const apiKey = process.env.RESEND_API_KEY;

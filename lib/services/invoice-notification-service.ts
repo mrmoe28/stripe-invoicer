@@ -9,10 +9,9 @@ import {
 
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { getEmailBaseUrl, buildEmailUrl } from "@/lib/utils/email-helpers";
 
 import { sendEmail, sendSms } from "./notification-service";
-
-const DEFAULT_APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL || "https://ledgerflow.org";
 
 export type DispatchResult = {
   email?: { success: boolean; error?: string };
@@ -42,11 +41,11 @@ function getInvoiceUrl(invoice: InvoiceWithRelations) {
   if (invoice.paymentLinkUrl) {
     return invoice.paymentLinkUrl;
   }
-  return `${DEFAULT_APP_URL}/invoices/${invoice.id}`;
+  return buildEmailUrl(`invoices/${invoice.id}`);
 }
 
 function getTrackingPixelUrl(invoice: InvoiceWithRelations) {
-  return `${DEFAULT_APP_URL}/api/invoices/${invoice.id}/opened.gif`;
+  return buildEmailUrl(`api/invoices/${invoice.id}/opened.gif`);
 }
 
 function parseAlertRecipients(invoice: InvoiceWithRelations) {
@@ -280,7 +279,7 @@ async function notifyWorkspace(
   }
 
   const { formattedTotal, dueDate } = buildInvoiceSummary(invoice);
-  const invoiceUrl = `${DEFAULT_APP_URL}/invoices/${invoice.id}`;
+  const invoiceUrl = buildEmailUrl(`invoices/${invoice.id}`);
 
   const subject =
     kind === "opened"
