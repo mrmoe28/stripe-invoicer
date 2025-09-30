@@ -3,6 +3,23 @@ import type { Invoice, InvoiceLine } from "@prisma/client";
 import { getStripeClient } from "@/lib/stripe";
 import { buildEmailUrl } from "@/lib/utils/email-helpers";
 
+function getPaymentSuccessUrl(invoiceId: string): string {
+  // For Stripe payment links, we need a publicly accessible URL
+  // In production, use the production domain
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL_URL) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
+                   'https://ledgerflow.org';
+    return `${baseUrl}/payment-success?invoice=${invoiceId}`;
+  }
+  
+  // In development, use a placeholder that can be updated when testing
+  // with real Stripe webhooks. For local testing, this will need to be 
+  // a publicly accessible URL (like ngrok tunnel)
+  const devUrl = process.env.STRIPE_REDIRECT_BASE_URL || buildEmailUrl('payment-success');
+  return `${devUrl}${devUrl.includes('?') ? '&' : '?'}invoice=${invoiceId}`;
+}
+
 export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItems: InvoiceLine[] }) {
   console.log('🔗 Attempting to create Stripe payment link for invoice:', invoice.number);
   
@@ -66,7 +83,7 @@ export async function maybeCreateStripePaymentLink(invoice: Invoice & { lineItem
       after_completion: {
         type: "redirect",
         redirect: {
-          url: buildEmailUrl(`payment-success?invoice=${invoice.id}`),
+          url: getPaymentSuccessUrl(invoice.id),
         },
       },
     });

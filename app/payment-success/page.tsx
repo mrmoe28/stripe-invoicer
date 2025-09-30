@@ -1,10 +1,13 @@
 import { Suspense } from "react";
 import { CheckCircle, Download, Mail, ArrowLeft } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function PaymentSuccessContent() {
+  const searchParams = useSearchParams();
+  const invoiceId = searchParams.get('invoice');
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-lg mx-auto shadow-lg">
@@ -17,6 +20,11 @@ function PaymentSuccessContent() {
           </CardTitle>
           <p className="text-gray-600">
             Thank you for your payment. Your transaction has been processed successfully.
+            {invoiceId && (
+              <span className="block mt-2 text-sm">
+                Reference: Invoice {invoiceId.slice(-8).toUpperCase()}
+              </span>
+            )}
           </p>
         </CardHeader>
         

@@ -82,6 +82,21 @@ pnpm lint:fix        # Fix auto-fixable linting issues
 - Webhook endpoint at `/api/stripe/webhook` for event processing
 - Customer sync between local database and Stripe
 - Invoice status reconciliation based on payment events
+- Payment success redirect to `/payment-success?invoice=<invoiceId>`
+
+#### Payment Flow
+1. Invoice created with `enablePaymentLink: true`
+2. Stripe Payment Link generated via `maybeCreateStripePaymentLink()`
+3. Payment link stored in `invoice.paymentLinkUrl`
+4. Email sent with "Pay Invoice Now" button linking to Stripe payment page
+5. After payment, Stripe redirects to `/payment-success?invoice=<invoiceId>`
+6. Stripe webhook updates invoice status to PAID
+
+#### Development Payment Testing
+For local development with real Stripe payments:
+1. Use ngrok to expose localhost: `ngrok http 3001`
+2. Set `STRIPE_REDIRECT_BASE_URL` to your ngrok URL in `.env`
+3. This ensures Stripe can redirect back after payment completion
 
 ## Environment Configuration
 Required environment variables:
