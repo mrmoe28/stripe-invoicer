@@ -113,7 +113,11 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-sm text-emerald-600">
             <Icon name="arrowRight" className="size-4 rotate-90" />
-            {payments.filter((payment) => payment.status === "SUCCEEDED").length} successful payments
+            {payments.filter((payment) => 
+              payment.status === "SUCCEEDED" && 
+              payment.processedAt && 
+              isAfter(payment.processedAt, sevenDaysAgo)
+            ).length} successful payments
           </CardContent>
         </Card>
         <Card>
