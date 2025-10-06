@@ -5,7 +5,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-10-28.acacia",
+  apiVersion: "2025-08-27.basil",
 });
 
 declare global {
@@ -20,7 +20,7 @@ export function getStripeClient() {
 
   if (!global.stripeClient) {
     global.stripeClient = new Stripe(secretKey, {
-      apiVersion: "2024-10-28.acacia",
+      apiVersion: "2025-08-27.basil",
     });
   }
 
