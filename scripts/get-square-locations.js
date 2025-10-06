@@ -1,11 +1,10 @@
 // Quick script to get Square Location ID
 const { SquareClient, SquareEnvironment } = require('square');
 
+// Use production credentials
 const client = new SquareClient({
-  accessToken: process.env.SQUARE_ACCESS_TOKEN,
-  environment: process.env.SQUARE_ENVIRONMENT === 'production' 
-    ? SquareEnvironment.Production 
-    : SquareEnvironment.Sandbox,
+  accessToken: 'EAAAlx2ChyW15BdBXaAMwhHiRSRutkxf1KYn49mk7-qF9_82dKkfnm5tlBpjgQUm',
+  environment: SquareEnvironment.Production,
 });
 
 async function getLocations() {
