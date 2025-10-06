@@ -55,7 +55,8 @@ export async function createSquareCheckoutLink(invoice: Invoice & { lineItems: I
       quantity: item.quantity.toString(),
       basePriceMoney: {
         amount: BigInt(Math.round(Number(item.unitPrice) * 100)), // Convert to cents
-        currency: (invoice.currency || 'USD').toUpperCase()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        currency: (invoice.currency || 'USD').toUpperCase() as any // Type assertion for Square Currency enum
       }
     }));
     
@@ -89,19 +90,19 @@ export async function createSquareCheckoutLink(invoice: Invoice & { lineItems: I
     
     const response = await checkoutApi.paymentLinks.create(request);
     
-    if (response.result.paymentLink?.url) {
+    if (response.paymentLink?.url) {
       const duration = Date.now() - startTime;
-      console.log('✅ Square checkout link created successfully:', response.result.paymentLink.url);
+      console.log('✅ Square checkout link created successfully:', response.paymentLink.url);
       console.log(`⏱️  Creation took ${duration}ms`);
       
       return {
         success: true,
-        url: response.result.paymentLink.url,
-        id: response.result.paymentLink.id,
+        url: response.paymentLink.url,
+        id: response.paymentLink.id,
         provider: 'square'
       };
     } else {
-      console.error('❌ Invalid response from Square:', response.result);
+      console.error('❌ Invalid response from Square:', response);
       return null;
     }
     
