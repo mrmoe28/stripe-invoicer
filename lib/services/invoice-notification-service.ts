@@ -515,6 +515,207 @@ export async function recordInvoiceOpen(
   }
 }
 
+async function sendReceiptEmail(invoice: InvoiceWithRelations): Promise<void> {
+  if (!invoice.customer.email) {
+    return;
+  }
+
+  const customerName = invoice.customer.primaryContact || invoice.customer.businessName;
+  const subtotal = invoice.lineItems.reduce((total, item) => total + Number(item.amount ?? 0), 0);
+  const taxAmount = Number(invoice.taxTotal ?? 0);
+  const totalAmount = Number(invoice.total);
+  const currency = invoice.currency ?? "USD";
+  const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '';
+  
+  // Company information
+  const workspace = invoice.workspace as WorkspaceWithCompanyInfo;
+  const companyName = workspace.companyName || workspace.name;
+  const companyEmail = workspace.companyEmail || "notifications@ledgerflow.org";
+  const logoUrl = workspace.logoUrl;
+  
+  // Build line items HTML
+  const itemsHtml = invoice.lineItems.map(item => `
+    <tr style="border-bottom: 1px solid #f3f4f6;">
+      <td style="padding: 12px 0; font-size: 14px; color: #374151;">${item.description}</td>
+      <td style="padding: 12px 0; font-size: 14px; color: #374151; text-align: center;">${item.quantity}</td>
+      <td style="padding: 12px 0; font-size: 14px; color: #374151; text-align: right;">${currencySymbol}${Number(item.unitPrice).toFixed(2)}</td>
+      <td style="padding: 12px 0; font-size: 14px; color: #374151; text-align: right;">${currencySymbol}${Number(item.amount).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Receipt - Invoice ${invoice.number}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f9fafb;">
+  <div style="padding: 40px 0;">
+    <table cellpadding="0" cellspacing="0" style="margin: 0 auto; max-width: 600px; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <!-- Header -->
+      <tr>
+        <td style="background-color: #059669; padding: 32px; text-align: center;">
+          <div style="background-color: white; width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px auto; display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 32px;">✓</span>
+          </div>
+          ${logoUrl ? `
+            <img src="${logoUrl}" alt="${companyName}" style="max-height: 40px; max-width: 150px; margin: 0 auto 12px auto; display: block;" />
+          ` : ''}
+          <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">Payment Received</h1>
+          <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 16px;">Thank you for your payment!</p>
+        </td>
+      </tr>
+      
+      <!-- Main Content -->
+      <tr>
+        <td style="padding: 32px;">
+          <p style="font-size: 16px; line-height: 24px; color: #374151; margin-bottom: 24px;">
+            Dear ${customerName},
+          </p>
+          
+          <p style="font-size: 16px; line-height: 24px; color: #374151; margin-bottom: 32px;">
+            We have successfully received your payment for Invoice ${invoice.number}. This email serves as your receipt and confirmation.
+          </p>
+
+          <!-- Payment Summary -->
+          <div style="background-color: #f0fdf4; border-radius: 8px; padding: 24px; margin-bottom: 32px; border: 1px solid #bbf7d0;">
+            <h3 style="margin: 0 0 16px 0; color: #059669; font-size: 18px;">Payment Confirmation</h3>
+            <table style="width: 100%;">
+              <tr>
+                <td style="padding-bottom: 12px;">
+                  <strong style="color: #6b7280; font-size: 12px; text-transform: uppercase;">Invoice Number</strong>
+                  <div style="color: #111827; font-size: 16px; margin-top: 4px;">${invoice.number}</div>
+                </td>
+                <td style="padding-bottom: 12px; text-align: right;">
+                  <strong style="color: #6b7280; font-size: 12px; text-transform: uppercase;">Amount Paid</strong>
+                  <div style="color: #059669; font-size: 20px; font-weight: 600; margin-top: 4px;">
+                    ${currencySymbol}${totalAmount.toFixed(2)}
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong style="color: #6b7280; font-size: 12px; text-transform: uppercase;">Payment Date</strong>
+                  <div style="color: #111827; font-size: 14px; margin-top: 4px;">${formatDate(new Date())}</div>
+                </td>
+                <td style="text-align: right;">
+                  <strong style="color: #6b7280; font-size: 12px; text-transform: uppercase;">Status</strong>
+                  <div style="color: #059669; font-size: 14px; font-weight: 600; margin-top: 4px;">PAID</div>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Line Items -->
+          <div style="margin-bottom: 32px;">
+            <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 16px; text-transform: uppercase;">Invoice Items</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                  <th style="text-align: left; padding: 8px 0; font-size: 12px; color: #6b7280; font-weight: 500;">Description</th>
+                  <th style="text-align: center; padding: 8px 0; font-size: 12px; color: #6b7280; font-weight: 500;">Qty</th>
+                  <th style="text-align: right; padding: 8px 0; font-size: 12px; color: #6b7280; font-weight: 500;">Price</th>
+                  <th style="text-align: right; padding: 8px 0; font-size: 12px; color: #6b7280; font-weight: 500;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="padding: 12px 0; font-size: 14px; color: #6b7280; text-align: right;">Subtotal</td>
+                  <td style="padding: 12px 0; font-size: 14px; color: #374151; text-align: right;">${currencySymbol}${subtotal.toFixed(2)}</td>
+                </tr>
+                ${taxAmount > 0 ? `
+                <tr>
+                  <td colspan="3" style="padding: 12px 0; font-size: 14px; color: #6b7280; text-align: right;">Tax</td>
+                  <td style="padding: 12px 0; font-size: 14px; color: #374151; text-align: right;">${currencySymbol}${taxAmount.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                <tr style="border-top: 2px solid #e5e7eb;">
+                  <td colspan="3" style="padding: 12px 0; font-size: 16px; font-weight: 600; color: #111827; text-align: right;">Total Paid</td>
+                  <td style="padding: 12px 0; font-size: 16px; font-weight: 600; color: #059669; text-align: right;">${currencySymbol}${totalAmount.toFixed(2)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div style="background-color: #f9fafb; border-radius: 6px; padding: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb;">
+            <p style="font-size: 14px; color: #374151; margin: 0;">
+              <strong>📧 Keep this email</strong> as your receipt for your records. If you need a printed copy, you can print this email.
+            </p>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background-color: #f9fafb; padding: 24px; border-top: 1px solid #e5e7eb;">
+          <table style="width: 100%;">
+            <tr>
+              <td>
+                <p style="font-size: 12px; color: #6b7280; margin: 0 0 4px 0;">
+                  <strong>${companyName}</strong>
+                </p>
+                <p style="font-size: 12px; color: #6b7280; margin: 0;">
+                  ${companyEmail}
+                </p>
+              </td>
+              <td style="text-align: right;">
+                <p style="font-size: 12px; color: #9ca3af; margin: 0;">
+                  Questions? Reply to this email
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>`;
+
+  const text = `Payment Receipt - Invoice ${invoice.number}
+
+Dear ${customerName},
+
+We have successfully received your payment for Invoice ${invoice.number}. This email serves as your receipt and confirmation.
+
+Payment Details:
+- Invoice Number: ${invoice.number}
+- Amount Paid: ${currencySymbol}${totalAmount.toFixed(2)}
+- Payment Date: ${formatDate(new Date())}
+- Status: PAID
+
+Thank you for your business!
+
+${companyName}
+${companyEmail}
+
+Keep this email as your receipt for your records.`;
+
+  const subject = `Payment Receipt - Invoice ${invoice.number}`;
+  const response = await sendEmail({ 
+    to: invoice.customer.email, 
+    subject, 
+    html, 
+    text 
+  });
+
+  if (response.success) {
+    await recordEvent(invoice.id, InvoiceEventType.SENT_EMAIL, InvoiceEventStatus.SUCCESS, InvoiceEventChannel.EMAIL, {
+      type: 'receipt',
+      providerId: response.id,
+    });
+  } else {
+    await recordEvent(invoice.id, InvoiceEventType.SENT_EMAIL, InvoiceEventStatus.FAILED, InvoiceEventChannel.EMAIL, {
+      type: 'receipt',
+      error: response.error,
+    });
+  }
+}
+
 export async function notifyInvoicePaid(invoiceId: string): Promise<void> {
   const invoice = await getInvoiceWithRelations(invoiceId);
   if (!invoice) {
@@ -525,6 +726,10 @@ export async function notifyInvoicePaid(invoiceId: string): Promise<void> {
     return;
   }
 
+  // Send receipt email to customer
+  await sendReceiptEmail(invoice);
+
+  // Notify workspace members
   await notifyWorkspace(invoice, "paid");
 
   await prisma.invoice.update({
