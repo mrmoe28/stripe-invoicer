@@ -1,12 +1,11 @@
 import type { Invoice, InvoiceLine } from "@prisma/client";
-// @ts-ignore - Square SDK doesn't have TypeScript declarations
-import { Client, Environment, CheckoutApi } from "squareup";
+import { SquareClient, SquareEnvironment } from "square";
 
 const squareEnvironment = process.env.SQUARE_ENVIRONMENT === 'production' 
-  ? Environment.Production 
-  : Environment.Sandbox;
+  ? SquareEnvironment.Production 
+  : SquareEnvironment.Sandbox;
 
-function getSquareClient(): Client | null {
+function getSquareClient(): SquareClient | null {
   const accessToken = process.env.SQUARE_ACCESS_TOKEN;
   
   if (!accessToken) {
@@ -14,7 +13,7 @@ function getSquareClient(): Client | null {
     return null;
   }
   
-  return new Client({
+  return new SquareClient({
     accessToken,
     environment: squareEnvironment,
   });
@@ -35,7 +34,7 @@ export async function createSquareCheckoutLink(invoice: Invoice & { lineItems: I
     return null;
   }
   
-  const checkoutApi = client.checkoutApi;
+  const checkoutApi = client.checkout;
   
   try {
     // Validate invoice data
@@ -88,7 +87,7 @@ export async function createSquareCheckoutLink(invoice: Invoice & { lineItems: I
       lineItemCount: orderLineItems.length,
     });
     
-    const response = await checkoutApi.createPaymentLink(request);
+    const response = await checkoutApi.paymentLinks.create(request);
     
     if (response.result.paymentLink?.url) {
       const duration = Date.now() - startTime;
