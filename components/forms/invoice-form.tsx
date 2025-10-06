@@ -23,6 +23,7 @@ import {
   type InvoiceFormValues,
   type InvoiceLineValues,
 } from "@/lib/validations/invoice";
+import { getAvailableProviders, type PaymentProvider } from "@/lib/services/payment-provider-service";
 
 const now = new Date();
 const defaultIssueDate = toInputDate(now);
@@ -81,6 +82,7 @@ export function InvoiceForm({ customers, defaultCustomerId, invoice }: InvoiceFo
   const isEdit = Boolean(invoice);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
+  const [availableProviders] = React.useState<PaymentProvider[]>(() => getAvailableProviders());
 
   const defaultValues = React.useMemo<InvoiceFormValues>(() => {
     if (invoice) {
@@ -92,6 +94,7 @@ export function InvoiceForm({ customers, defaultCustomerId, invoice }: InvoiceFo
         status: invoice.status,
         notes: invoice.notes ?? "",
         enablePaymentLink: Boolean(invoice.paymentLinkUrl),
+        paymentProvider: "stripe" as PaymentProvider,
         requiresDeposit: Boolean(invoice.requiresDeposit),
         depositType: invoice.depositType ?? "FIXED",
         depositValue: invoice.depositValue ?? 0,
@@ -123,6 +126,7 @@ export function InvoiceForm({ customers, defaultCustomerId, invoice }: InvoiceFo
       status: "DRAFT",
       notes: "",
       enablePaymentLink: true,
+      paymentProvider: availableProviders[0] || "stripe",
       requiresDeposit: false,
       depositType: "FIXED",
       depositValue: 0,
@@ -147,6 +151,8 @@ export function InvoiceForm({ customers, defaultCustomerId, invoice }: InvoiceFo
   const { fields, append, remove } = useFieldArray({ control, name: "lineItems" });
 
   const lineItems = watch("lineItems");
+  const enablePaymentLink = watch("enablePaymentLink");
+  const paymentProvider = watch("paymentProvider");
   const requiresDeposit = watch("requiresDeposit");
   const depositType = watch("depositType");
   const depositValue = watch("depositValue");
@@ -311,12 +317,44 @@ export function InvoiceForm({ customers, defaultCustomerId, invoice }: InvoiceFo
                 defaultChecked={defaultValues.enablePaymentLink}
               />
               <span>
-                <span className="font-medium text-foreground">Generate Stripe payment link</span>
+                <span className="font-medium text-foreground">Generate payment link</span>
                 <span className="block text-xs text-muted-foreground">
-                  Creates a hosted checkout link when Stripe keys are configured.
+                  Creates a hosted checkout link when payment provider keys are configured.
                 </span>
               </span>
             </label>
+
+            {enablePaymentLink && availableProviders.length > 1 && (
+              <div className="space-y-2">
+                <Label htmlFor="paymentProvider">Payment provider</Label>
+                <Select
+                  value={paymentProvider}
+                  onValueChange={(value) => setValue("paymentProvider", value as PaymentProvider)}
+                >
+                  <SelectTrigger id="paymentProvider">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableProviders.map((provider) => (
+                      <SelectItem key={provider} value={provider}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium capitalize">{provider}</span>
+                          {provider === "stripe" && <span className="text-xs text-muted-foreground">(Card payments)</span>}
+                          {provider === "square" && <span className="text-xs text-muted-foreground">(Quick checkout)</span>}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {enablePaymentLink && availableProviders.length === 0 && (
+              <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
+                <p className="font-medium">No payment providers configured</p>
+                <p className="text-xs">Add Stripe or Square API keys to enable payment links.</p>
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">
               Payment links use the invoice line items as one-time products. You can send the link or embed it in your emails.
             </p>

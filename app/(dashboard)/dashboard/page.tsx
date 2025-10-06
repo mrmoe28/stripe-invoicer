@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { differenceInDays, isAfter, subDays } from "date-fns";
 
-import { RevenueChart } from "@/components/charts/revenue-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,27 +52,6 @@ export default async function DashboardPage() {
     : null;
 
   const recentInvoices = invoices.slice(0, 5);
-
-  const chartBuckets = new Map<string, { recurring: number; oneOff: number }>();
-  invoices.forEach((invoice) => {
-    const month = new Date(invoice.issueDate).toLocaleString("en-US", { month: "short" });
-    if (!chartBuckets.has(month)) {
-      chartBuckets.set(month, { recurring: 0, oneOff: 0 });
-    }
-    const bucket = chartBuckets.get(month)!;
-    const isRecurring = invoice.notes?.toLowerCase().includes("retainer");
-    if (isRecurring) {
-      bucket.recurring += Number(invoice.total ?? 0);
-    } else {
-      bucket.oneOff += Number(invoice.total ?? 0);
-    }
-  });
-
-  const chartData = Array.from(chartBuckets.entries()).map(([month, value]) => ({
-    month,
-    recurring: value.recurring,
-    oneOff: value.oneOff,
-  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -140,16 +118,7 @@ export default async function DashboardPage() {
         </Card>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <Card className="overflow-hidden">
-          <CardHeader>
-            <CardTitle>Revenue trend</CardTitle>
-            <CardDescription>Recurring retainers plus one-off projects.</CardDescription>
-          </CardHeader>
-          <CardContent className="px-2">
-            <RevenueChart data={chartData.length ? chartData : undefined} />
-          </CardContent>
-        </Card>
+      <section>
         <Card>
           <CardHeader>
             <CardTitle>Latest activity</CardTitle>

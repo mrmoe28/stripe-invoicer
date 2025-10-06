@@ -7,6 +7,7 @@ import { InvoiceStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { maybeCreateStripePaymentLink } from "@/lib/services/payment-link-service";
+import { createPaymentLink } from "@/lib/services/payment-provider-service";
 import { createInvoice, updateInvoice, deleteInvoice } from "@/lib/services/invoice-service";
 import {
   dispatchInvoice,
@@ -23,17 +24,17 @@ export async function createInvoiceAction(rawValues: InvoiceFormValues) {
   console.log('🔗 Payment link enabled:', values.enablePaymentLink);
   let createdPaymentLink: string | null = null;
   if (values.enablePaymentLink) {
-    console.log('🔗 Creating payment link for invoice:', invoice.number);
-    const paymentLink = await maybeCreateStripePaymentLink(invoice);
-    if (paymentLink) {
-      console.log('✅ Payment link created, updating invoice with URL:', paymentLink);
+    console.log('🔗 Creating payment link for invoice:', invoice.number, 'with provider:', values.paymentProvider);
+    const result = await createPaymentLink(invoice, values.paymentProvider);
+    if (result.success && result.url) {
+      console.log('✅ Payment link created, updating invoice with URL:', result.url);
       await prisma.invoice.update({
         where: { id: invoice.id },
-        data: { paymentLinkUrl: paymentLink },
+        data: { paymentLinkUrl: result.url },
       });
-      createdPaymentLink = paymentLink;
+      createdPaymentLink = result.url;
     } else {
-      console.log('❌ Payment link creation failed');
+      console.log('❌ Payment link creation failed:', result.error);
     }
   }
 
@@ -71,17 +72,17 @@ export async function updateInvoiceAction(invoiceId: string, rawValues: InvoiceF
   let updatedPaymentLink: string | null = null;
 
   if (values.enablePaymentLink) {
-    const paymentLink = await maybeCreateStripePaymentLink(updated);
-    if (paymentLink) {
+    const result = await createPaymentLink(updated, values.paymentProvider);
+    if (result.success && result.url) {
       latestInvoice = await prisma.invoice.update({
         where: { id: updated.id },
-        data: { paymentLinkUrl: paymentLink },
+        data: { paymentLinkUrl: result.url },
         include: {
           customer: true,
           lineItems: true,
         },
       });
-      updatedPaymentLink = paymentLink;
+      updatedPaymentLink = result.url;
     }
   }
 
