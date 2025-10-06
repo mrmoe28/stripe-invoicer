@@ -1,6 +1,4 @@
 import type { Invoice, InvoiceLine } from "@prisma/client";
-import { maybeCreateStripePaymentLink } from "./payment-link-service";
-import { createSquareCheckoutLink } from "./square-payment-service";
 
 export type PaymentProvider = 'stripe' | 'square';
 
@@ -20,6 +18,7 @@ export async function createPaymentLink(
   try {
     switch (provider) {
       case 'stripe': {
+        const { maybeCreateStripePaymentLink } = await import("./payment-link-service");
         const stripeUrl = await maybeCreateStripePaymentLink(invoice);
         return {
           success: !!stripeUrl,
@@ -30,6 +29,7 @@ export async function createPaymentLink(
       }
       
       case 'square': {
+        const { createSquareCheckoutLink } = await import("./square-payment-service");
         const squareResult = await createSquareCheckoutLink(invoice);
         return {
           success: !!squareResult?.success,

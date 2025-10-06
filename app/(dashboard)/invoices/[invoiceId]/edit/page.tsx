@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getCurrentUser } from "@/lib/auth";
 import { listCustomers } from "@/lib/services/customer-service";
 import { getInvoiceById } from "@/lib/services/invoice-service";
+import { getAvailableProviders } from "@/lib/services/payment-provider-service";
 
 export const metadata: Metadata = {
   title: "Edit invoice",
@@ -40,9 +41,10 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ in
   const user = await getCurrentUser();
   const resolvedParams = await params;
 
-  const [customers, invoice] = await Promise.all([
+  const [customers, invoice, availableProviders] = await Promise.all([
     listCustomers(user.workspaceId),
     getInvoiceById(user.workspaceId, resolvedParams.invoiceId),
+    Promise.resolve(getAvailableProviders()),
   ]);
 
   if (!invoice) {
@@ -75,7 +77,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ in
 
       <Card>
         <CardContent className="py-6">
-          <InvoiceForm customers={customerOptions} invoice={plainInvoice} />
+          <InvoiceForm customers={customerOptions} invoice={plainInvoice} availableProviders={availableProviders} />
         </CardContent>
       </Card>
     </div>

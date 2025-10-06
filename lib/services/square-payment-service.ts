@@ -1,4 +1,5 @@
 import type { Invoice, InvoiceLine } from "@prisma/client";
+// @ts-ignore - Square SDK doesn't have TypeScript declarations
 import { Client, Environment, CheckoutApi } from "squareup";
 
 const squareEnvironment = process.env.SQUARE_ENVIRONMENT === 'production' 
@@ -115,7 +116,7 @@ export async function createSquareCheckoutLink(invoice: Invoice & { lineItems: I
   }
 }
 
-export async function getSquareWebhookSecret(): string | null {
+export async function getSquareWebhookSecret(): Promise<string | null> {
   // Square webhooks use signature verification
   return process.env.SQUARE_WEBHOOK_SIGNATURE_KEY || null;
 }

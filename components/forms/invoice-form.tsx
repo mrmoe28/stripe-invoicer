@@ -23,7 +23,7 @@ import {
   type InvoiceFormValues,
   type InvoiceLineValues,
 } from "@/lib/validations/invoice";
-import { getAvailableProviders, type PaymentProvider } from "@/lib/services/payment-provider-service";
+import { type PaymentProvider } from "@/lib/services/payment-provider-service";
 
 const now = new Date();
 const defaultIssueDate = toInputDate(now);
@@ -75,14 +75,14 @@ type InvoiceFormProps = {
   customers: CustomerOption[];
   defaultCustomerId?: string;
   invoice?: InvoiceFormInvoice;
+  availableProviders?: PaymentProvider[];
 };
 
-export function InvoiceForm({ customers, defaultCustomerId, invoice }: InvoiceFormProps) {
+export function InvoiceForm({ customers, defaultCustomerId, invoice, availableProviders = ['stripe'] }: InvoiceFormProps) {
   const router = useRouter();
   const isEdit = Boolean(invoice);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
-  const [availableProviders] = React.useState<PaymentProvider[]>(() => getAvailableProviders());
 
   const defaultValues = React.useMemo<InvoiceFormValues>(() => {
     if (invoice) {

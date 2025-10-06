@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 import { listCustomers } from "@/lib/services/customer-service";
+import { getAvailableProviders } from "@/lib/services/payment-provider-service";
 
 export const metadata: Metadata = {
   title: "New invoice",
@@ -18,6 +19,7 @@ export default async function NewInvoicePage({
 }) {
   const user = await getCurrentUser();
   const customers = await listCustomers(user.workspaceId);
+  const availableProviders = getAvailableProviders();
   const resolvedSearchParams = await searchParams;
   const requestedCustomerId = resolvedSearchParams?.customerId;
   const defaultCustomerId = customers.some((customer) => customer.id === requestedCustomerId)
@@ -59,6 +61,7 @@ export default async function NewInvoicePage({
                 email: customer.email,
               }))}
               defaultCustomerId={defaultCustomerId}
+              availableProviders={availableProviders}
             />
           </CardContent>
         </Card>
