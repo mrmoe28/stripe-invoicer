@@ -139,7 +139,7 @@ export function InvoiceForm({ customers, defaultCustomerId, invoice, availablePr
         },
       ],
     } satisfies InvoiceFormValues;
-  }, [customers, defaultCustomerId, invoice]);
+  }, [customers, defaultCustomerId, invoice, availableProviders]);
 
   const form = useForm<InvoiceFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

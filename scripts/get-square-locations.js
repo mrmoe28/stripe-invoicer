@@ -3,7 +3,7 @@ const { SquareClient, SquareEnvironment } = require('square');
 
 // Use production credentials
 const client = new SquareClient({
-  accessToken: 'EAAAlx2ChyW15BdBXaAMwhHiRSRutkxf1KYn49mk7-qF9_82dKkfnm5tlBpjgQUm',
+  token: 'EAAAlx2ChyW15BdBXaAMwhHiRSRutkxf1KYn49mk7-qF9_82dKkfnm5tlBpjgQUm',
   environment: SquareEnvironment.Production,
 });
 

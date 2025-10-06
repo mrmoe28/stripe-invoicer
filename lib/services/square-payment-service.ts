@@ -14,7 +14,7 @@ function getSquareClient(): SquareClient | null {
   }
   
   return new SquareClient({
-    accessToken,
+    token: accessToken,
     environment: squareEnvironment,
   });
 }
@@ -66,7 +66,7 @@ export async function createSquareCheckoutLink(invoice: Invoice & { lineItems: I
       prePopulateBuyerEmail: '', // Could be populated with customer email if available
       redirectUrl: getPaymentSuccessUrl(invoice.id),
       order: {
-        locationId: process.env.SQUARE_LOCATION_ID, // Required for Square
+        locationId: process.env.SQUARE_LOCATION_ID || 'MAIN', // Required for Square
         referenceId: invoice.number,
         lineItems: orderLineItems
       },
