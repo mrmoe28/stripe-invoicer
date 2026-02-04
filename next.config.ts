@@ -11,6 +11,15 @@ if (typeof process.env.STRIPE_SECRET_KEY_NEW === "undefined") {
 const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
 
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**.googleusercontent.com", pathname: "/**" },
+      { protocol: "https", hostname: "avatars.githubusercontent.com", pathname: "/**" },
+      { protocol: "https", hostname: "**.githubusercontent.com", pathname: "/**" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
+    ],
+  },
+
   // Build-time fallback so Stripe env checks don't fail when only using Square
   env: {
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "sk_test_build_placeholder",
