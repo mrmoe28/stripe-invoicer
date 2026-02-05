@@ -79,18 +79,40 @@ export default async function InvoicesPage() {
                 <TableHead>Issued</TableHead>
                 <TableHead>Due</TableHead>
                 <TableHead>Total</TableHead>
+                <TableHead>Balance</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {invoices.map((invoice) => (
+              {invoices.map((invoice) => {
+                const total = Number(invoice.total ?? 0);
+                const succeededPayments =
+                  invoice.payments?.filter((p) => p.status === "SUCCEEDED") ?? [];
+                const totalPaid = succeededPayments.reduce(
+                  (sum, p) => sum + Number(p.amount),
+                  0
+                );
+                const balance = Math.max(total - totalPaid, 0);
+                const hasPayments = succeededPayments.length > 0;
+                return (
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">{invoice.number}</TableCell>
                   <TableCell>{invoice.customer.businessName}</TableCell>
                   <TableCell>{formatDate(invoice.issueDate)}</TableCell>
                   <TableCell>{formatDate(invoice.dueDate)}</TableCell>
-                  <TableCell>{formatCurrency(Number(invoice.total ?? 0))}</TableCell>
+                  <TableCell>{formatCurrency(total)}</TableCell>
+                  <TableCell>
+                    {hasPayments ? (
+                      balance === 0 ? (
+                        <span className="text-muted-foreground">Paid</span>
+                      ) : (
+                        formatCurrency(balance)
+                      )
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={statusVariant[invoice.status]}>
                       {statusCopy[invoice.status]}
@@ -108,10 +130,11 @@ export default async function InvoicesPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+              })}
               {invoices.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center text-sm text-muted-foreground">
                     No invoices yet. Create your first invoice to get started.
                   </TableCell>
                 </TableRow>

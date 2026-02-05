@@ -113,9 +113,23 @@ model Workspace {
   customers          Customer[]
   invoices           Invoice[]
   invoiceTemplates   InvoiceTemplate[]
+  integrations       WorkspaceIntegration[]
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   defaultUsers       User[]        @relation("DefaultWorkspace")
+}
+
+model WorkspaceIntegration {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String   // e.g. "OpenClaw"
+  slug        String   // e.g. "openclaw" for lookup
+  baseUrl     String?  // optional base URL for API
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([workspaceId, slug])
 }
 
 model Membership {

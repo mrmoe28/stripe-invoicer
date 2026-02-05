@@ -1,3 +1,4 @@
+import { ApiIntegrationsCard } from "@/components/settings/api-integrations-card";
 import { EmailDeliveryCard } from "@/components/settings/email-delivery-card";
 import { SquareSetupCard } from "@/components/settings/square-setup-card";
 import { CompanySettingsForm } from "@/components/forms/company-settings-form";
@@ -37,6 +38,8 @@ export default async function SettingsPage() {
       />
 
       <EmailDeliveryCard initialInfo={emailDomainInfo} />
+
+      <ApiIntegrationsCard />
 
       <CompanySettingsForm 
         workspace={workspace} 
