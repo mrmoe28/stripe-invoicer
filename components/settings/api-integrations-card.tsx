@@ -12,6 +12,7 @@ type Integration = {
   name: string;
   slug: string;
   baseUrl: string | null;
+  apiKeyMasked: string | null;
   createdAt: string;
 };
 
@@ -23,6 +24,7 @@ export function ApiIntegrationsCard() {
   const [baseUrl, setBaseUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [newApiKey, setNewApiKey] = useState<{ name: string; key: string } | null>(null);
 
   const fetchIntegrations = async () => {
     try {
@@ -57,10 +59,14 @@ export function ApiIntegrationsCard() {
         }),
       });
       if (res.ok) {
+        const data = await res.json();
         setName("");
         setBaseUrl("");
         setShowForm(false);
         await fetchIntegrations();
+        if (data.apiKey) {
+          setNewApiKey({ name: data.integration.name, key: data.apiKey });
+        }
       } else {
         const data = await res.json();
         alert(data.message || "Failed to add integration");
@@ -70,6 +76,11 @@ export function ApiIntegrationsCard() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const copyKey = (key: string) => {
+    navigator.clipboard.writeText(key);
+    setNewApiKey(null);
   };
 
   const handleRemove = async (id: string) => {
@@ -102,7 +113,7 @@ export function ApiIntegrationsCard() {
               )}
             </CardTitle>
             <CardDescription>
-              Link Ledgerflow to other apps like OpenClaw using API keys or webhooks.
+              Create an API key for each app (e.g. OpenClaw). Paste the key into that app so it can talk to Ledgerflow.
             </CardDescription>
           </div>
           <Button
@@ -116,6 +127,37 @@ export function ApiIntegrationsCard() {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {newApiKey && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/40 p-4 space-y-3">
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+              API key for {newApiKey.name}
+            </p>
+            <p className="text-xs text-amber-800 dark:text-amber-200">
+              Copy this key and paste it into {newApiKey.name}. We won&apos;t show it again.
+            </p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 rounded bg-amber-100 dark:bg-amber-900/60 px-3 py-2 text-sm font-mono break-all">
+                {newApiKey.key}
+              </code>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => copyKey(newApiKey.key)}
+              >
+                Copy
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setNewApiKey(null)}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        )}
+
         {showForm && (
           <form onSubmit={handleAdd} className="rounded-lg border border-border/60 p-4 space-y-4">
             <div className="space-y-2">
@@ -158,6 +200,11 @@ export function ApiIntegrationsCard() {
               >
                 <div>
                   <p className="font-medium text-foreground">{int.name}</p>
+                  {int.apiKeyMasked && (
+                    <p className="text-xs text-muted-foreground font-mono">
+                      Key: {int.apiKeyMasked}
+                    </p>
+                  )}
                   {int.baseUrl && (
                     <p className="text-xs text-muted-foreground truncate max-w-md" title={int.baseUrl}>
                       {int.baseUrl}
