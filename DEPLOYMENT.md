@@ -43,9 +43,23 @@ TWILIO_FROM_NUMBER="+1YOUR_TWILIO_PHONE_NUMBER"
 
 ## Vercel Deployment
 
-1. Connect your GitHub repository to Vercel
-2. Set the environment variables in Vercel dashboard
-3. Deploy from the main branch
+### Link this repo so Vercel recognizes the project
+
+1. In **Vercel Dashboard** → **Add New** → **Project** (or open your existing Ledgerflow / stripe-invoicer project).
+2. **Import** from Git and select the repo: **mrmoe28/stripe-invoicer** (this repo). Branch: **main**.
+3. Confirm **Root Directory** is **.** (project root). Do not use a subfolder.
+4. In **Project Settings** → **General** → **Build Cache**: click **Clear Build Cache**, then trigger a new deployment (Deployments → ⋮ on latest → Redeploy, or push a commit).
+
+### If deployments don’t start on push
+
+- In **Project Settings** → **Git**: ensure **Connected Git Repository** is **mrmoe28/stripe-invoicer** and the **Production Branch** is **main**.
+- This repo includes a **vercel.json** (framework: nextjs, pnpm) so Vercel detects the project correctly.
+
+### Deploy steps
+
+1. Connect the GitHub repo **mrmoe28/stripe-invoicer** to Vercel (see above).
+2. Set the environment variables in the Vercel dashboard.
+3. Deploy from the **main** branch (auto-deploys on push, or deploy manually).
 
 ### If build fails: "STRIPE_SECRET_KEY or STRIPE_SECRET_KEY_NEW is not set"
 
